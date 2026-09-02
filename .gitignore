@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
+*.egg-info/
+
+# py2app / packaging output
+build/
+dist/
+
+# macOS
+.DS_Store
+
+# Local app data must never be committed (it lives in ~/Library anyway)
+*.eml
+
+# Keep brokers.json tracked — it is the published artifact the app pulls.

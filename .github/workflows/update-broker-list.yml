@@ -1,0 +1,48 @@
+name: Refresh broker list
+
+# Regenerates brokers.json from the curated seed list + community sources and
+# commits it. Once this repo is on GitHub, the app's "Update source URL" is:
+#
+#   https://raw.githubusercontent.com/<owner>/<repo>/main/brokers.json
+#
+# The app's own monthly job then pulls that file. This workflow keeps it fresh.
+
+on:
+  schedule:
+    - cron: "0 9 1 * *"      # 09:00 UTC on the 1st of each month
+  workflow_dispatch: {}       # allow manual runs from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-broker-list
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build deps
+        run: python -m pip install -r tools/requirements.txt
+
+      - name: Build brokers.json
+        run: python tools/build_broker_list.py -o brokers.json
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- brokers.json; then
+            echo "brokers.json unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add brokers.json
+          git commit -m "chore: refresh broker list ($(date -u +%Y-%m-%d))"
+          git push

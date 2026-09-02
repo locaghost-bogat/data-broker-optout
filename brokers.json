@@ -1,0 +1,1760 @@
+{
+  "schema_version": 1,
+  "list_version": "2026-09-02",
+  "generated": "2026-09-02T13:21:31",
+  "note": "Merged from the app's curated seed list (authoritative) and the community list brianreumere/data-brokers. Always confirm the current process on the broker's own privacy page. 'last_verified' is the date the entry was last checked by a human in its source.",
+  "sources": [
+    {
+      "name": "data-broker-optout seed",
+      "url": "bundled"
+    },
+    {
+      "name": "brianreumere/data-brokers",
+      "url": "https://github.com/brianreumere/data-brokers"
+    }
+  ],
+  "brokers": [
+    {
+      "id": "acxiom",
+      "name": "Acxiom (LiveRamp)",
+      "category": "marketing-data-broker",
+      "site": "https://www.acxiom.com",
+      "opt_out_url": "https://www.acxiom.com/optout/",
+      "method": "form+email",
+      "privacy_email": "consumeradvo@acxiom.com",
+      "privacy_phone": "1-877-774-2094",
+      "mailing_address": "Acxiom, Consumer Advocate Office, 301 E. Dave Ward Drive, Conway, AR 72032",
+      "confirmation": "email + mailed letter",
+      "requires_id": false,
+      "typical_completion_days": 30,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the online opt-out form to remove yourself from Acxiom's marketing products. Registered California data broker.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "addressescom",
+      "name": "addresses.com",
+      "category": "people-search",
+      "site": "https://www.addresses.com/",
+      "opt_out_url": "https://www.addresses.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "advancedbackgroundchecks",
+      "name": "Advanced Background Checks",
+      "category": "people-search",
+      "site": "https://www.advancedbackgroundchecks.com",
+      "opt_out_url": "https://www.advancedbackgroundchecks.com/removal",
+      "method": "form",
+      "privacy_email": "info@advancedbackgroundchecks.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 2,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your record, submit its URL on the removal page, confirm by email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "advancedpeoplesearch",
+      "name": "Advanced People Search",
+      "category": "people-search",
+      "site": "https://www.advanced-people-search.com/",
+      "opt_out_url": "https://www.advanced-people-search.com/static/view/contact/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search the main site for your listing first, then submit its URL on the opt-out page.  Note: Make sure to select \"OPT ME OUT\" on the contact form and then opt out; the main opt out form doesn't work.  Guide (OneRep): https://wiki.onerep.com/post/advanced-people-search.com",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "americaphonebook",
+      "name": "America Phone Book",
+      "category": "people-search",
+      "site": "https://www.americaphonebook.com/",
+      "opt_out_url": "https://www.americaphonebook.com/contact.php",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search the main site for your listing first, then submit its URL on the opt-out page.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "anywho",
+      "name": "AnyWho",
+      "category": "people-search",
+      "site": "https://www.anywho.com/",
+      "opt_out_url": "https://www.anywho.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "backgroundcheckrun",
+      "name": "Background Check",
+      "category": "people-search",
+      "site": "https://backgroundcheck.run/",
+      "opt_out_url": "https://backgroundcheck.run/",
+      "method": "account",
+      "privacy_email": "ccpa@backgroundcheck.run",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: Control form is broken. Advises to email ccpa@backgroundcheck.run instead. Make sure to indicate in email that the opt out form is not working.  Guide (DeleteMe): https://joindeleteme.com/blog/how-to-remove-yourself-from-background-check-run/",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "beenverified",
+      "name": "BeenVerified",
+      "category": "background-check",
+      "site": "https://www.beenverified.com",
+      "opt_out_url": "https://www.beenverified.com/app/optout/search",
+      "method": "form+email",
+      "privacy_email": "privacy@beenverified.com",
+      "privacy_phone": "1-844-509-1544",
+      "mailing_address": "BeenVerified, Attn: Privacy, 100 Church Street, 8th Floor, New York, NY 10007",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 1,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search your name, select your record, enter your email, then click the verification link. Also covers PeopleSmart and NeighborWho (same company).  [community list: opt-out reported not working as of 2023-11-01]",
+      "last_verified": "2026-09-02",
+      "source": "seed",
+      "flags": [
+        "community-reports-broken"
+      ]
+    },
+    {
+      "id": "checkpeople",
+      "name": "CheckPeople",
+      "category": "people-search",
+      "site": "https://www.checkpeople.com",
+      "opt_out_url": "https://www.checkpeople.com/opt-out",
+      "method": "form",
+      "privacy_email": "support@checkpeople.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search your name, submit your record URL, confirm by email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "clustrmaps",
+      "name": "ClustrMaps",
+      "category": "address-lookup",
+      "site": "https://clustrmaps.com",
+      "opt_out_url": "https://clustrmaps.com/bl/opt-out",
+      "method": "form+email",
+      "privacy_email": "privacy@clustrmaps.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA",
+        "GDPR"
+      ],
+      "instructions": "Submit your record URL and email; confirm via the link. Removal is per-address.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "corelogic",
+      "name": "CoreLogic",
+      "category": "risk-data-broker",
+      "site": "https://www.corelogic.com",
+      "opt_out_url": "https://www.corelogic.com/policies/opt-out-details/",
+      "method": "email",
+      "privacy_email": "privacy@corelogic.com",
+      "privacy_phone": "1-800-831-3290",
+      "mailing_address": "CoreLogic, Attn: Consumer Privacy, 40 Pacifica, Ste. 900, Irvine, CA 92618",
+      "confirmation": "email",
+      "requires_id": true,
+      "typical_completion_days": 30,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA",
+        "FCRA"
+      ],
+      "instructions": "Email the consumer privacy team to opt out of CoreLogic's TeleTrack / rental-screening and marketing data. Proof of identity required.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "councilon",
+      "name": "Councilon",
+      "category": "people-search",
+      "site": "https://councilon.com/",
+      "opt_out_url": "https://councilon.com/",
+      "method": "account",
+      "privacy_email": "control@councilon.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `control@councilon.com`. Make sure to indicate in the email that the opt-out form is broken.  Note: No reply to removal request.  Guide (Optery): https://www.optery.com/councilon-how-to-remove-councilon-step-by-step-instructions/",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "dataveria",
+      "name": "Dataveria",
+      "category": "people-search",
+      "site": "https://dataveria.com/",
+      "opt_out_url": "https://dataveria.com/",
+      "method": "account",
+      "privacy_email": "customer@dataveria.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `customer@dataveria.com`. Make sure to indicate in the email that the opt-out form is broken.  Note: No reply to removal request.  Guide (OneRep): https://wiki.onerep.com/post/dataveria.com",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "dexknows",
+      "name": "DexKnows",
+      "category": "people-search",
+      "site": "https://www.dexknows.com/",
+      "opt_out_url": "https://www.dexknows.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "easybackgroundchecks",
+      "name": "EasyBackgroundChecks",
+      "category": "people-search",
+      "site": "https://easybackgroundchecks.com/",
+      "opt_out_url": "https://easybackgroundchecks.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "epsilon",
+      "name": "Epsilon (Publicis)",
+      "category": "marketing-data-broker",
+      "site": "https://www.epsilon.com",
+      "opt_out_url": "https://legal.epsilon.com/dsr/",
+      "method": "form",
+      "privacy_email": "privacy@epsilon.com",
+      "privacy_phone": "1-866-267-3861",
+      "mailing_address": "Epsilon Data Management LLC, Attn: Privacy, 6021 Connection Drive, Irving, TX 75039",
+      "confirmation": "email",
+      "requires_id": false,
+      "typical_completion_days": 30,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Submit a Data Subject Request (delete + do-not-sell) via the DSR portal. Registered California data broker.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "familytreenow",
+      "name": "FamilyTreeNow",
+      "category": "people-search",
+      "site": "https://www.familytreenow.com",
+      "opt_out_url": "https://www.familytreenow.com/optout",
+      "method": "form",
+      "privacy_email": "privacy@familytreenow.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "on-screen",
+      "requires_id": false,
+      "typical_completion_days": 2,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search your name, open your record, click 'opt out this record'.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "fastbackgroundcheck",
+      "name": "FastBackgroundCheck",
+      "category": "people-search",
+      "site": "https://www.fastbackgroundcheck.com/",
+      "opt_out_url": "https://www.fastbackgroundcheck.com/opt-out",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the broker's removal/opt-out search directly, then request removal of each result.",
+      "last_verified": "2023-11-01",
+      "source": "brianreumere"
+    },
+    {
+      "id": "fastpeoplesearch",
+      "name": "FastPeopleSearch",
+      "category": "people-search",
+      "site": "https://www.fastpeoplesearch.com",
+      "opt_out_url": "https://www.fastpeoplesearch.com/removal",
+      "method": "form",
+      "privacy_email": "privacy@fastpeoplesearch.com",
+      "privacy_phone": "1-800-425-3081",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Locate your listing, submit its URL on the removal page, confirm via email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "freephonetracer",
+      "name": "FreePhoneTracer",
+      "category": "people-search",
+      "site": "https://www.freephonetracer.com/",
+      "opt_out_url": "https://www.freephonetracer.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "greypages",
+      "name": "GreyPages",
+      "category": "people-search",
+      "site": "https://www.grey-pages.com/",
+      "opt_out_url": "https://www.grey-pages.com/removal",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search the main site for your listing first, then submit its URL on the opt-out page.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "identitypi",
+      "name": "iDentityPi",
+      "category": "people-search",
+      "site": "http://www.identitypi.com/",
+      "opt_out_url": "http://www.identitypi.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "idtrue",
+      "name": "IDTrue",
+      "category": "background-check",
+      "site": "https://www.idtrue.com",
+      "opt_out_url": "https://www.idtrue.com/optout/",
+      "method": "form+email",
+      "privacy_email": "privacy@idtrue.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 7,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your listing, submit its URL, confirm via emailed link.  [community list: opt-out reported not working as of 2023-11-01]",
+      "last_verified": "2026-09-02",
+      "source": "seed",
+      "flags": [
+        "community-reports-broken"
+      ]
+    },
+    {
+      "id": "infotracer",
+      "name": "InfoTracer",
+      "category": "people-search",
+      "site": "https://infotracer.com/",
+      "opt_out_url": "https://infotracer.com/optout/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the broker's removal/opt-out search directly, then request removal of each result.  Guide (Optery): https://www.optery.com/infotracer-how-to-opt-out-of-infotracer-step-by-step-instructions/",
+      "last_verified": "2023-11-01",
+      "source": "brianreumere"
+    },
+    {
+      "id": "instantcheckmate",
+      "name": "Instant Checkmate",
+      "category": "background-check",
+      "site": "https://www.instantcheckmate.com",
+      "opt_out_url": "https://www.instantcheckmate.com/opt-out/",
+      "method": "form+email",
+      "privacy_email": "privacy@peopleconnect.us",
+      "privacy_phone": "1-800-222-8985",
+      "mailing_address": "PeopleConnect Inc., Attn: Privacy, 1918 8th Ave, Suite 1200, Seattle, WA 98101",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 7,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Locate your record, submit the opt-out form, confirm by email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "intelius",
+      "name": "Intelius",
+      "category": "background-check",
+      "site": "https://www.intelius.com",
+      "opt_out_url": "https://www.intelius.com/opt-out/",
+      "method": "form+email",
+      "privacy_email": "privacy@peopleconnect.us",
+      "privacy_phone": "1-888-245-1655",
+      "mailing_address": "PeopleConnect Inc., Attn: Privacy, 1918 8th Ave, Suite 1200, Seattle, WA 98101",
+      "confirmation": "email link",
+      "requires_id": true,
+      "typical_completion_days": 10,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Submit the opt-out form and confirm by email. PeopleConnect may ask for a photo of a government ID with the number obscured. Also covers Classmates, US Search, and TruthFinder-adjacent PeopleConnect brands.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "lexisnexis",
+      "name": "LexisNexis Risk Solutions",
+      "category": "risk-data-broker",
+      "site": "https://risk.lexisnexis.com",
+      "opt_out_url": "https://optout.lexisnexis.com/",
+      "method": "form",
+      "privacy_email": "privacy.information.mgr@lexisnexis.com",
+      "privacy_phone": "1-888-497-0011",
+      "mailing_address": "LexisNexis Risk Solutions, Attn: Privacy Office, 1000 Alderman Drive, Alpharetta, GA 30005",
+      "confirmation": "mailed letter",
+      "requires_id": true,
+      "typical_completion_days": 30,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA",
+        "FCRA",
+        "DPPA"
+      ],
+      "instructions": "Submit the opt-out form. Full suppression generally requires a permissible-purpose claim (e.g. threat to safety, law-enforcement, identity theft) plus proof of identity. Otherwise you can request a consumer disclosure report and marketing-data deletion.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "mylife",
+      "name": "MyLife",
+      "category": "reputation-score",
+      "site": "https://www.mylife.com",
+      "opt_out_url": "https://www.mylife.com/ccpa/index.pubview",
+      "method": "form+email",
+      "privacy_email": "privacy@mylife.com",
+      "privacy_phone": "1-888-704-1900",
+      "mailing_address": "MyLife.com Inc., Attn: Privacy, 907 Westwood Blvd #359, Los Angeles, CA 90024",
+      "confirmation": "email + phone follow-up",
+      "requires_id": false,
+      "typical_completion_days": 10,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Submit the CCPA form. MyLife is slow and often requires a follow-up phone call to 1-888-704-1900 to force the deletion.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "neighborreport",
+      "name": "Neighbor.Report",
+      "category": "people-search",
+      "site": "https://neighbor.report/",
+      "opt_out_url": "https://neighbor.report/remove",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search the main site for your listing first, then submit its URL on the opt-out page.  Guide (DeleteMe): https://joindeleteme.com/blog/how-to-remove-yourself-from-neighbor-report/",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "neighborwho",
+      "name": "NeighborWho",
+      "category": "people-search",
+      "site": "https://www.neighborwho.com/",
+      "opt_out_url": "https://www.neighborwho.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "newenglandfacts",
+      "name": "New England Facts",
+      "category": "people-search",
+      "site": "https://newenglandfacts.com/",
+      "opt_out_url": "https://newenglandfacts.com/",
+      "method": "account",
+      "privacy_email": "csr@newenglandfacts.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2023-11-01.  Workaround: The control form advises you to email `csr@newenglandfacts.com`. Make sure to indicate in the email that the opt-out form is broken.  Guide (DeleteMe): https://joindeleteme.com/blog/how-to-remove-yourself-from-new-england-facts/",
+      "last_verified": "2023-11-01",
+      "source": "brianreumere"
+    },
+    {
+      "id": "numberguru",
+      "name": "NumberGuru",
+      "category": "people-search",
+      "site": "https://www.numberguru.com/",
+      "opt_out_url": "https://www.numberguru.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "nuwber",
+      "name": "Nuwber",
+      "category": "people-search",
+      "site": "https://nuwber.com",
+      "opt_out_url": "https://nuwber.com/removal/link",
+      "method": "form+email",
+      "privacy_email": "support@nuwber.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your profile, paste its URL on the removal page, confirm via the emailed link.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "officialusa",
+      "name": "OfficialUSA",
+      "category": "people-search",
+      "site": "https://www.officialusa.com/",
+      "opt_out_url": "https://www.officialusa.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle Data Cloud / BlueKai",
+      "category": "marketing-data-broker",
+      "site": "https://www.oracle.com",
+      "opt_out_url": "https://www.oracle.com/legal/privacy/marketing-cloud-data-cloud-privacy-policy.html",
+      "method": "email",
+      "privacy_email": "dp-optout_ww@oracle.com",
+      "privacy_phone": "1-650-506-7000",
+      "mailing_address": "Oracle Corporation, Attn: Global Data Protection Officer, 2300 Oracle Way, Austin, TX 78741",
+      "confirmation": "email",
+      "requires_id": false,
+      "typical_completion_days": 30,
+      "regions": [
+        "US",
+        "EU"
+      ],
+      "law_basis": [
+        "CCPA",
+        "GDPR"
+      ],
+      "instructions": "Email a deletion / do-not-sell request. Oracle wound down its Advertising business in 2024 but still processes data-broker deletion requests.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "peekyou",
+      "name": "PeekYou",
+      "category": "people-search",
+      "site": "https://www.peekyou.com",
+      "opt_out_url": "https://www.peekyou.com/about/contact/optout/",
+      "method": "form",
+      "privacy_email": "support@peekyou.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email acknowledgement",
+      "requires_id": false,
+      "typical_completion_days": 14,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Submit the opt-out form with the numeric ID from your PeekYou profile URL.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "peoplebackgroundcheck",
+      "name": "People Background Check",
+      "category": "people-search",
+      "site": "https://people-background-check.com/",
+      "opt_out_url": "https://people-background-check.com/",
+      "method": "account",
+      "privacy_email": "unlist-request@people-background-check.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `unlist-request@people-background-check.com`. Make sure to indicate in the email that the opt-out form is broken.  Note: No reply to removal request.",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "peoplesearchnow",
+      "name": "People Search Now",
+      "category": "people-search",
+      "site": "https://www.peoplesearchnow.com/",
+      "opt_out_url": "https://www.peoplesearchnow.com/opt-out",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the broker's removal/opt-out search directly, then request removal of each result.  Guide (Optery): https://www.optery.com/peoplesearchnow-how-to-opt-out-of-peoplesearchnow-step-by-step-instructions/",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "peopleyellowpagescom",
+      "name": "people.yellowpages.com",
+      "category": "people-search",
+      "site": "https://people.yellowpages.com/whitepages/",
+      "opt_out_url": "https://people.yellowpages.com/whitepages/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "peoplebyname",
+      "name": "PeopleByName",
+      "category": "people-search",
+      "site": "https://www.peoplebyname.com",
+      "opt_out_url": "https://www.peoplebyname.com/remove.php",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "none",
+      "requires_id": false,
+      "typical_completion_days": 7,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Enter your listing URL on the removal page.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "peopleconnect",
+      "name": "PeopleConnect",
+      "category": "people-search",
+      "site": "https://peopleconnect.us/",
+      "opt_out_url": "https://suppression.peopleconnect.us/login",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the broker's removal/opt-out search directly, then request removal of each result.  Note: Instant Checkmate, Intelius, TruthFinder, and US Search are all direct fronts for PeopleConnect (as they brag about on their website). Additional sites are fronts for Intelius. They all use the same opt out process via PeopleConnect. The opt out process requires verification by phone or SMS.  Guide (Optery): https://www.optery.com/intelius-how-to-opt-out-and-remove-yourself-from-intelius-step-by-step-instructions/",
+      "last_verified": "2023-11-01",
+      "source": "brianreumere"
+    },
+    {
+      "id": "peoplefinders",
+      "name": "PeopleFinders",
+      "category": "people-search",
+      "site": "https://www.peoplefinders.com",
+      "opt_out_url": "https://www.peoplefinders.com/opt-out",
+      "method": "form",
+      "privacy_email": "privacy@peoplefinders.com",
+      "privacy_phone": "1-800-718-8997",
+      "mailing_address": "PeopleFinders.com, Attn: Compliance, 1821 Q Street, Sacramento, CA 95811",
+      "confirmation": "on-screen",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search your name, click your record, then confirm the removal on the results screen.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "peoplelooker",
+      "name": "PeopleLooker",
+      "category": "background-check",
+      "site": "https://www.peoplelooker.com",
+      "opt_out_url": "https://www.peoplelooker.com/f/optout/search",
+      "method": "form+email",
+      "privacy_email": "privacy@peoplelooker.com",
+      "privacy_phone": "1-888-579-5910",
+      "mailing_address": "The Lifetime Value Co., 100 Church Street, 8th Floor, New York, NY 10007",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 2,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search your name, select your record, verify by email. Same company as BeenVerified / NeighborWho.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "peoplesmart",
+      "name": "PeopleSmart / NeighborWho",
+      "category": "people-search",
+      "site": "https://www.neighborwho.com",
+      "opt_out_url": "https://www.neighborwho.com/ccpa-optout",
+      "method": "form+email",
+      "privacy_email": "privacy@neighborwho.com",
+      "privacy_phone": "1-888-712-0108",
+      "mailing_address": "The Lifetime Value Co., 100 Church Street, 8th Floor, New York, NY 10007",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the CCPA opt-out form and confirm by email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "peoplewhiz",
+      "name": "PeopleWhiz / PeopleWhized",
+      "category": "people-search",
+      "site": "https://www.peoplewhiz.com",
+      "opt_out_url": "https://www.peoplewhiz.com/remove-my-info",
+      "method": "form",
+      "privacy_email": "support@peoplewhiz.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 5,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search your name, submit the record for removal, confirm by email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "persontrust",
+      "name": "PersonTrust",
+      "category": "people-search",
+      "site": "https://persontrust.com/",
+      "opt_out_url": "https://persontrust.com/ng/control/privacy",
+      "method": "account",
+      "privacy_email": "removal@persontrust.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `removal@persontrust.com`. Make sure to indicate in the email that the opt-out form is broken.  Note: Formerly known as Inforver. Site now redirects to PersonTrust.",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "privateeye",
+      "name": "Private Eye",
+      "category": "people-search",
+      "site": "https://www.privateeye.com/",
+      "opt_out_url": "https://www.privateeye.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "pub360",
+      "name": "Pub360",
+      "category": "people-search",
+      "site": "https://pub360.com/",
+      "opt_out_url": "https://pub360.com/",
+      "method": "account",
+      "privacy_email": "removals@pub360.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `removals@pub360.com`. Make sure to indicate in the email that the opt-out form is broken.  Note: No reply to removal request.",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "publicinformationservices",
+      "name": "Public Information Services",
+      "category": "people-search",
+      "site": "https://www.publicinfoservices.com/",
+      "opt_out_url": "https://www.publicinfoservices.com/help-center/remove-me-from-website",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the broker's removal/opt-out search directly, then request removal of each result.  Guide (OneRep): https://wiki.onerep.com/post/publicinfoservices.com",
+      "last_verified": "2023-11-01",
+      "source": "brianreumere"
+    },
+    {
+      "id": "publicrecords",
+      "name": "Public Records",
+      "category": "people-search",
+      "site": "https://www.publicrecords.com/",
+      "opt_out_url": "https://www.publicrecords.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "publicdatausa",
+      "name": "PublicDataUSA",
+      "category": "people-search",
+      "site": "https://www.publicdatausa.com",
+      "opt_out_url": "https://www.publicdatausa.com/remove.php",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "none",
+      "requires_id": false,
+      "typical_completion_days": 7,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Submit the record URL on the removal page. No confirmation is sent; re-check after 2 weeks.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "publicrecordsnow",
+      "name": "PublicRecordsNOW",
+      "category": "people-search",
+      "site": "https://www.publicrecordsnow.com/",
+      "opt_out_url": "https://www.publicrecordsnow.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "radaris",
+      "name": "Radaris",
+      "category": "people-search",
+      "site": "https://radaris.com",
+      "opt_out_url": "https://radaris.com/control/privacy",
+      "method": "account",
+      "privacy_email": "support@radaris.com",
+      "privacy_phone": "",
+      "mailing_address": "Bitseller Expert Limited (Radaris), Themistokli Dervi 48, Athienitis Centennial Building, Office 402, 1066 Nicosia, Cyprus",
+      "confirmation": "email link + SMS",
+      "requires_id": false,
+      "typical_completion_days": 14,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Open your profile, choose 'Control information', verify by email and phone, then request removal of each listed record. Radaris often re-lists; re-check in 60 days.  [community list: opt-out reported not working as of 2024-01-25]",
+      "last_verified": "2026-09-02",
+      "source": "seed",
+      "flags": [
+        "community-reports-broken"
+      ]
+    },
+    {
+      "id": "rehold",
+      "name": "Rehold",
+      "category": "address-lookup",
+      "site": "https://rehold.com",
+      "opt_out_url": "https://rehold.com/opt-out",
+      "method": "form",
+      "privacy_email": "privacy@rehold.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email acknowledgement",
+      "requires_id": false,
+      "typical_completion_days": 5,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Submit the record URL on the opt-out page.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "revealname",
+      "name": "RevealName",
+      "category": "people-search",
+      "site": "https://www.revealname.com/",
+      "opt_out_url": "https://www.revealname.com/opt_out",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search the main site for your listing first, then submit its URL on the opt-out page.  Guide (OneRep): https://wiki.onerep.com/post/revealname.com",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "searchpublicrecords",
+      "name": "Search Public Records",
+      "category": "people-search",
+      "site": "https://www.searchpublicrecords.com/",
+      "opt_out_url": "https://www.searchpublicrecords.com/help-center/remove-me-from-website",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the broker's removal/opt-out search directly, then request removal of each result.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "searchpeoplefree",
+      "name": "SearchPeopleFree",
+      "category": "people-search",
+      "site": "https://www.searchpeoplefree.com",
+      "opt_out_url": "https://www.searchpeoplefree.com/opt-out",
+      "method": "form",
+      "privacy_email": "privacy@searchpeoplefree.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 2,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Locate your listing, submit its URL, confirm via emailed link.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "smartbackgroundchecks",
+      "name": "SmartBackgroundChecks",
+      "category": "people-search",
+      "site": "https://www.smartbackgroundchecks.com",
+      "opt_out_url": "https://www.smartbackgroundchecks.com/optout",
+      "method": "form",
+      "privacy_email": "info@smartbackgroundchecks.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your record, submit its URL, confirm via emailed link.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "socialcatfish",
+      "name": "Social Catfish",
+      "category": "people-search",
+      "site": "https://socialcatfish.com/",
+      "opt_out_url": "https://socialcatfish.com/opt-out/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search the main site for your listing first, then submit its URL on the opt-out page.  Note: Social Catfish is listed as a [dishonorable data broker](https://help.optery.com/en/article/coverage-limitations-for-dishonorable-data-brokers-like-peekyou-radaris-persopo-blockshopper-and-others-13ykn8r/) by Optery.  Guide (Optery): https://www.optery.com/socialcatfish-how-to-opt-out-of-socialcatfish-step-by-step-instructions/",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "spokeo",
+      "name": "Spokeo",
+      "category": "people-search",
+      "site": "https://www.spokeo.com",
+      "opt_out_url": "https://www.spokeo.com/optout",
+      "method": "form+email",
+      "privacy_email": "privacy@spokeo.com",
+      "privacy_phone": "1-888-906-0850",
+      "mailing_address": "Spokeo, Attn: Privacy, 556 S. Fair Oaks Ave #101, PMB 1142, Pasadena, CA 91105",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 7,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your profile on spokeo.com, copy its URL, paste it on the opt-out page with your email, then click the confirmation link Spokeo emails you.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "spydialer",
+      "name": "SpyDialer",
+      "category": "phone-lookup",
+      "site": "https://www.spydialer.com",
+      "opt_out_url": "https://www.spydialer.com/optout.aspx",
+      "method": "form+email",
+      "privacy_email": "support@spydialer.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Enter the phone number or email to suppress and confirm via the emailed link.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "thatsthem",
+      "name": "ThatsThem",
+      "category": "people-search",
+      "site": "https://thatsthem.com",
+      "opt_out_url": "https://thatsthem.com/optout",
+      "method": "form",
+      "privacy_email": "privacy@thatsthem.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "on-screen",
+      "requires_id": false,
+      "typical_completion_days": 2,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Enter the URL of your record on the opt-out page and submit.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "truepeoplesearch",
+      "name": "TruePeopleSearch",
+      "category": "people-search",
+      "site": "https://www.truepeoplesearch.com",
+      "opt_out_url": "https://www.truepeoplesearch.com/removal",
+      "method": "form",
+      "privacy_email": "privacy@truepeoplesearch.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your record, copy its URL, submit it on the removal page, click the emailed link.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "truthfinder",
+      "name": "TruthFinder",
+      "category": "background-check",
+      "site": "https://www.truthfinder.com",
+      "opt_out_url": "https://www.truthfinder.com/opt-out/",
+      "method": "form+email",
+      "privacy_email": "privacy@peopleconnect.us",
+      "privacy_phone": "1-800-699-8081",
+      "mailing_address": "PeopleConnect Inc., Attn: Privacy, 1918 8th Ave, Suite 1200, Seattle, WA 98101",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 7,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your record, submit the opt-out form, confirm by email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "usapeoplesearch",
+      "name": "USA People Search",
+      "category": "people-search",
+      "site": "https://www.usa-people-search.com/",
+      "opt_out_url": "https://www.usa-people-search.com/manage/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Use the broker's removal/opt-out search directly, then request removal of each result.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "dob-search",
+      "name": "USA-People-Search",
+      "category": "people-search",
+      "site": "https://www.usa-people-search.com",
+      "opt_out_url": "https://www.usa-people-search.com/manage",
+      "method": "form",
+      "privacy_email": "privacy@usa-people-search.com",
+      "privacy_phone": "1-877-666-6996",
+      "mailing_address": "PubRec LLC, 1821 Q Street, Sacramento, CA 95811",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Find your record, submit its URL on the manage page, confirm by email. Same operator as PeopleFinders.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "usphonebook",
+      "name": "USPhoneBook",
+      "category": "people-search",
+      "site": "https://www.usphonebook.com",
+      "opt_out_url": "https://www.usphonebook.com/opt-out",
+      "method": "form",
+      "privacy_email": "info@usphonebook.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email link",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search your name, copy the record URL, submit on the opt-out page, confirm by email.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "ussearch",
+      "name": "USSearch",
+      "category": "people-search",
+      "site": "https://www.ussearch.com/",
+      "opt_out_url": "https://www.ussearch.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    },
+    {
+      "id": "verecor",
+      "name": "Verecor",
+      "category": "people-search",
+      "site": "https://verecor.com/",
+      "opt_out_url": "https://verecor.com/",
+      "method": "account",
+      "privacy_email": "assist@verecor.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `assist@verecor.com`. Make sure to indicate in the email that the opt-out form is broken.",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "vericora",
+      "name": "Vericora",
+      "category": "people-search",
+      "site": "https://vericora.com/",
+      "opt_out_url": "https://vericora.com/",
+      "method": "account",
+      "privacy_email": "mailus@vericora.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `mailus@vericora.com`. Make sure to indicate in the email that the opt-out form is broken.",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "veriforia",
+      "name": "Veriforia",
+      "category": "people-search",
+      "site": "https://veriforia.com/",
+      "opt_out_url": "https://veriforia.com/",
+      "method": "account",
+      "privacy_email": "support@veriforia.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `support@veriforia.com`. Make sure to indicate in the email that the opt-out form is broken.",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "veripages",
+      "name": "VeriPages",
+      "category": "people-search",
+      "site": "https://veripages.com/",
+      "opt_out_url": "https://veripages.com/",
+      "method": "account",
+      "privacy_email": "removal@veripages.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Search for the profile that matches your data, then use the 'control this profile' flow to request removal.  COMMUNITY LIST: this opt-out was reported NOT working as of 2024-01-25.  Workaround: The control form advises you to email `removal@veripages.com`. Make sure to indicate in the email that the opt-out form is broken.",
+      "last_verified": "2024-01-25",
+      "source": "brianreumere"
+    },
+    {
+      "id": "wellnut",
+      "name": "Webmii",
+      "category": "people-search",
+      "site": "https://webmii.com",
+      "opt_out_url": "https://webmii.com/help#contact",
+      "method": "email",
+      "privacy_email": "contact@webmii.com",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "email",
+      "requires_id": false,
+      "typical_completion_days": 14,
+      "regions": [
+        "EU",
+        "US"
+      ],
+      "law_basis": [
+        "GDPR",
+        "CCPA"
+      ],
+      "instructions": "Email a removal request with the URL of the profile page you want de-indexed.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "whitepages",
+      "name": "Whitepages",
+      "category": "people-search",
+      "site": "https://www.whitepages.com",
+      "opt_out_url": "https://www.whitepages.com/suppression-requests",
+      "method": "form",
+      "privacy_email": "support@whitepages.com",
+      "privacy_phone": "1-206-973-5100",
+      "mailing_address": "Whitepages Inc., 1301 5th Ave, Suite 1600, Seattle, WA 98101",
+      "confirmation": "automated phone call with PIN",
+      "requires_id": false,
+      "typical_completion_days": 3,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "Locate your listing, copy the profile URL, submit it on the suppression page, then complete the automated phone verification call.",
+      "last_verified": "2026-09-02",
+      "source": "seed"
+    },
+    {
+      "id": "zabasearch",
+      "name": "Zabasearch",
+      "category": "people-search",
+      "site": "https://www.zabasearch.com/",
+      "opt_out_url": "https://www.zabasearch.com/",
+      "method": "form",
+      "privacy_email": "",
+      "privacy_phone": "",
+      "mailing_address": "",
+      "confirmation": "",
+      "requires_id": false,
+      "typical_completion_days": 0,
+      "regions": [
+        "US"
+      ],
+      "law_basis": [
+        "CCPA"
+      ],
+      "instructions": "See the broker's privacy / opt-out page for the current process.",
+      "last_verified": "2026-09-02",
+      "source": "brianreumere"
+    }
+  ]
+}
