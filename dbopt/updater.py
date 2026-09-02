@@ -20,6 +20,21 @@ USER_AGENT = "data-broker-optout/1.0 (+local privacy tool)"
 TIMEOUT = 30
 
 
+def _ssl_context() -> ssl.SSLContext:
+    """A verifying TLS context that still works when the OS trust store is empty.
+
+    The python.org macOS build ships without root certificates until the user
+    runs "Install Certificates.command"; the py2app bundle has the same gap. In
+    both cases `certifi` provides a CA bundle, so prefer it when importable and
+    fall back to the system default otherwise.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:  # noqa: BLE001 - certifi missing or unreadable bundle
+        return ssl.create_default_context()
+
+
 def _parse_date(value: str | None):
     if not value:
         return None
@@ -42,7 +57,7 @@ def is_due(settings: Settings, on: date | None = None) -> bool:
 
 
 def fetch_remote(url: str) -> dict:
-    ctx = ssl.create_default_context()
+    ctx = _ssl_context()
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=TIMEOUT, context=ctx) as resp:
         raw = resp.read().decode("utf-8")
@@ -81,9 +96,16 @@ def run_update(force: bool = False, source: str = "manual") -> dict:
     try:
         payload = fetch_remote(url)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ssl.SSLError, ValueError, OSError) as exc:
+        detail = f"Fetch failed: {exc}"
+        if "CERTIFICATE_VERIFY_FAILED" in str(exc):
+            detail += ("  —  This Python has no root certificates. Fix: run "
+                       "\"/Applications/Python 3.13/Install Certificates.command\", "
+                       "or  python3 -m pip install --user certifi")
+        elif "HTTP Error 404" in str(exc):
+            detail += "  —  Check the URL. A private GitHub repo's raw URL 404s without a token; make the repo public."
         result["status"] = "error"
-        result["detail"] = f"Fetch failed: {exc}"
-        storage.log_line(UPDATE_LOG, f"{source}: {result['detail']}")
+        result["detail"] = detail
+        storage.log_line(UPDATE_LOG, f"{source}: {detail}")
         return result
 
     try:

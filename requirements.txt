@@ -1,0 +1,12 @@
+# The app runs on the Python standard library alone, with ONE exception:
+#
+#   certifi  -  a CA-certificate bundle, used only by the broker-list updater
+#              (dbopt/updater.py) for HTTPS. The python.org macOS build and the
+#              py2app bundle both ship without a system trust store, so without
+#              certifi the "Check for updates" fetch fails with
+#              CERTIFICATE_VERIFY_FAILED. If certifi is absent the updater falls
+#              back to the system default context (which works once you have run
+#              "/Applications/Python 3.13/Install Certificates.command").
+#
+# Everything else - the GUI, profiles, request drafting, tracking - needs nothing.
+certifi>=2024.2.2

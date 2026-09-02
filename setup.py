@@ -14,7 +14,7 @@ APP = ["run.py"]
 DATA_FILES = [("data", ["data/brokers.seed.json"])]
 OPTIONS = {
     "argv_emulation": False,
-    "packages": ["dbopt"],
+    "packages": ["dbopt", "certifi"],
     "includes": ["tkinter", "tkinter.ttk", "tkinter.messagebox"],
     "plist": {
         "CFBundleName": "Data Broker Opt-Out",
