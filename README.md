@@ -161,17 +161,21 @@ gh gist create --desc "my data-broker list" data/brokers.seed.json
 
 **b) Auto-tracked — this repo's builder + GitHub Action**
 
-`tools/build_broker_list.py` merges the curated seed list (authoritative) with
-the community list [brianreumere/data-brokers](https://github.com/brianreumere/data-brokers)
-— the seed wins on curated fields (privacy email/phone, mailing address,
-hand-written instructions, verified opt-out URL); the community list only **adds**
-brokers and annotates any whose opt-out it reports broken. Output is validated
+`tools/build_broker_list.py` merges three sources, in decreasing precedence:
+
+1. the curated **seed list** (`data/brokers.seed.json`) — authoritative
+2. the community list [brianreumere/data-brokers](https://github.com/brianreumere/data-brokers) — people-search sites, with "opt-out broken" annotations
+3. the [**California Data Broker Registry**](https://cppa.ca.gov/data_broker_registry/) — ~600 registered brokers, each with a privacy email, mailing address, and CCPA-rights / DSAR URL
+
+Higher sources win on curated fields; lower ones only **add** brokers not already
+present and fill blank contact fields on existing entries. Output is validated
 against the app's own rules before it's written.
 
 ```bash
 python3 -m pip install -r tools/requirements.txt
-python3 tools/build_broker_list.py -o brokers.json      # ~75 brokers
+python3 tools/build_broker_list.py -o brokers.json      # ~670 brokers
 python3 tools/build_broker_list.py --check              # dry run, just the summary
+python3 tools/build_broker_list.py --no-ca              # skip the CA registry
 ```
 
 `.github/workflows/update-broker-list.yml` runs that on the 1st of each month
