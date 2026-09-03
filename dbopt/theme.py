@@ -1,8 +1,8 @@
-"""A light, restrained visual theme for the Tkinter UI.
+"""Vivid light theme for the Tkinter UI.
 
 macOS's native `aqua` ttk theme ignores almost every colour option, so we switch
-to `clam` and style it by hand: one blue accent used sparingly, soft neutral
-surfaces, and buttons that actually look like buttons.
+to `clam` and paint it by hand: a lavender canvas, saturated violet / green / red
+action buttons, bold numerals, colour-coded status rows.
 """
 from __future__ import annotations
 
@@ -10,25 +10,29 @@ import tkinter as tk
 from tkinter import ttk
 
 PALETTE = {
-    "bg":            "#f3f4f6",   # window background
-    "surface":       "#ffffff",   # cards, tables, inputs
-    "surface_alt":   "#eef0f3",   # table headings, inactive tabs
-    "border":        "#d5d9df",
-    "text":          "#1f2328",
-    "muted":         "#66707b",
-    "accent":        "#2f6feb",   # the one colour, used for primary actions
-    "accent_hover":  "#255ad1",
-    "accent_fg":     "#ffffff",
-    "ok":            "#1a7f45",   # progress / "removed"
-    "sel":           "#dbe7ff",   # row / list selection
+    "bg":            "#E7E3F1",   # lavender canvas
+    "surface":       "#FFFFFF",   # cards, tables, inputs
+    "surface_alt":   "#EDEAF7",   # table headings, inactive tabs
+    "border":        "#CBC3E4",
+    "text":          "#191325",
+    "muted":         "#6C6484",
+
+    "accent":        "#6C47E6",   # violet  -> primary action
+    "accent_hover":  "#5A38CC",
+    "success":       "#1FC15E",   # green   -> positive / "removed"
+    "success_hover": "#17A94F",
+    "danger":        "#F0473F",   # red     -> delete / rejected
+    "danger_hover":  "#D93A33",
+    "on_color":      "#FFFFFF",
+
+    "sel":           "#DED4FB",   # row / list selection
+    "warn":          "#D97A00",
 }
-
-FONT = ("Helvetica Neue", 12)
-FONT_BOLD = ("Helvetica Neue", 12, "bold")
-FONT_H1 = ("Helvetica Neue", 16, "bold")
-FONT_MONO = ("Menlo", 11)
-
 P = PALETTE
+
+FONT = ("Helvetica Neue", 13)
+FONT_BOLD = ("Helvetica Neue", 13, "bold")
+FONT_H1 = ("Helvetica Neue", 18, "bold")
 
 
 def apply(root: tk.Misc) -> None:
@@ -45,68 +49,88 @@ def apply(root: tk.Misc) -> None:
         pass
 
     style.configure(".", background=P["bg"], foreground=P["text"],
-                    fieldbackground=P["surface"], font=FONT,
-                    bordercolor=P["border"], lightcolor=P["border"],
-                    darkcolor=P["border"], focuscolor=P["accent"])
+                    fieldbackground=P["surface"], font=FONT, bordercolor=P["border"],
+                    lightcolor=P["border"], darkcolor=P["border"], focuscolor=P["accent"])
 
     style.configure("TFrame", background=P["bg"])
     style.configure("TLabelframe", background=P["bg"], bordercolor=P["border"])
     style.configure("TLabelframe.Label", background=P["bg"], foreground=P["muted"])
     style.configure("TLabel", background=P["bg"], foreground=P["text"])
     style.configure("Muted.TLabel", background=P["bg"], foreground=P["muted"])
-    style.configure("H1.TLabel", background=P["bg"], foreground=P["text"], font=FONT_H1)
+    style.configure("H1.TLabel", background=P["bg"], foreground=P["accent"], font=FONT_H1)
+    style.configure("OK.TLabel", background=P["bg"], foreground=P["success_hover"], font=FONT_BOLD)
+    style.configure("Warn.TLabel", background=P["bg"], foreground=P["warn"], font=FONT_BOLD)
     style.configure("Accentline.TFrame", background=P["accent"])
 
-    # --- buttons: bordered, padded, obvious --------------------------------
+    # --- buttons: flat, saturated, chunky ---------------------------------
     style.configure("TButton", background=P["surface"], foreground=P["text"],
-                    bordercolor=P["border"], relief="raised", borderwidth=1,
-                    padding=(13, 7), anchor="center")
+                    bordercolor=P["border"], relief="flat", borderwidth=1,
+                    padding=(14, 9), font=FONT_BOLD, anchor="center")
     style.map("TButton",
-              background=[("pressed", P["surface_alt"]), ("active", "#f6f8fb"),
-                         ("disabled", P["bg"])],
+              background=[("pressed", P["surface_alt"]), ("active", "#F4F1FD"),
+                         ("disabled", P["surface_alt"])],
               foreground=[("disabled", P["muted"])],
               bordercolor=[("focus", P["accent"]), ("active", P["accent"])])
 
-    style.configure("Accent.TButton", background=P["accent"], foreground=P["accent_fg"],
-                    bordercolor=P["accent"], relief="raised", borderwidth=1,
-                    padding=(15, 7))
-    style.map("Accent.TButton",
-              background=[("pressed", P["accent_hover"]), ("active", P["accent_hover"]),
-                         ("disabled", "#a9c2f5")],
-              foreground=[("disabled", "#eef3fd")],
-              bordercolor=[("!disabled", P["accent"])])
+    def _solid(name: str, fill: str, hover: str, disabled: str) -> None:
+        style.configure(name, background=fill, foreground=P["on_color"],
+                        bordercolor=fill, relief="flat", borderwidth=0,
+                        padding=(17, 9), font=FONT_BOLD)
+        style.map(name,
+                  background=[("pressed", hover), ("active", hover), ("disabled", disabled)],
+                  foreground=[("disabled", "#FFFFFFCC")])
 
-    # --- notebook --------------------------------------------------------
+    _solid("Accent.TButton", P["accent"], P["accent_hover"], "#B7A4F2")
+    _solid("Success.TButton", P["success"], P["success_hover"], "#A7E7C2")
+    _solid("Danger.TButton", P["danger"], P["danger_hover"], "#F3B3AF")
+
+    # --- notebook -----------------------------------------------------
     style.configure("TNotebook", background=P["bg"], borderwidth=0, tabmargins=(6, 6, 6, 0))
     style.configure("TNotebook.Tab", background=P["surface_alt"], foreground=P["muted"],
-                    padding=(16, 8), borderwidth=0)
+                    padding=(18, 9), borderwidth=0, font=FONT_BOLD)
     style.map("TNotebook.Tab",
-              background=[("selected", P["surface"])],
-              foreground=[("selected", P["text"])])
+              background=[("selected", P["accent"])],
+              foreground=[("selected", P["on_color"])])
 
-    # --- tables --------------------------------------------------------
+    # --- tables -----------------------------------------------------
     style.configure("Treeview", background=P["surface"], fieldbackground=P["surface"],
-                    foreground=P["text"], rowheight=25, borderwidth=1, relief="solid")
-    style.configure("Treeview.Heading", background=P["surface_alt"], foreground=P["muted"],
-                    relief="flat", padding=6, font=FONT_BOLD)
+                    foreground=P["text"], rowheight=27, borderwidth=1, relief="solid")
+    style.configure("Treeview.Heading", background=P["accent"], foreground=P["on_color"],
+                    relief="flat", padding=7, font=FONT_BOLD)
     style.map("Treeview",
-              background=[("selected", P["sel"])],
-              foreground=[("selected", P["text"])])
-    style.map("Treeview.Heading", background=[("active", P["border"])])
+              background=[("selected", P["sel"])], foreground=[("selected", P["text"])])
+    style.map("Treeview.Heading", background=[("active", P["accent_hover"])])
 
-    # --- inputs --------------------------------------------------------
+    # --- inputs -----------------------------------------------------
     for el in ("TEntry", "TCombobox", "TSpinbox"):
         style.configure(el, fieldbackground=P["surface"], background=P["surface"],
                         foreground=P["text"], bordercolor=P["border"],
-                        arrowcolor=P["muted"], padding=4)
+                        arrowcolor=P["accent"], padding=5)
         style.map(el, bordercolor=[("focus", P["accent"])])
     style.configure("TCheckbutton", background=P["bg"], foreground=P["text"])
     style.map("TCheckbutton", background=[("active", P["bg"])])
 
-    # --- progress ------------------------------------------------------
-    style.configure("TProgressbar", background=P["ok"], troughcolor=P["surface_alt"],
-                    bordercolor=P["surface_alt"], lightcolor=P["ok"], darkcolor=P["ok"],
-                    thickness=10)
+    style.configure("TProgressbar", background=P["success"], troughcolor=P["surface_alt"],
+                    bordercolor=P["surface_alt"], lightcolor=P["success"],
+                    darkcolor=P["success"], thickness=14)
+
+
+def status_tags(tree: ttk.Treeview) -> None:
+    """Colour-code Treeview rows by request status (call once per tree)."""
+    tree.tag_configure("removed", foreground=P["success_hover"], font=FONT_BOLD)
+    tree.tag_configure("rejected", foreground=P["danger_hover"], font=FONT_BOLD)
+    tree.tag_configure("inflight", foreground=P["accent"])
+    tree.tag_configure("idle", foreground=P["muted"])
+
+
+def status_tag(status: str) -> str:
+    if status == "confirmed_removed":
+        return "removed"
+    if status == "rejected":
+        return "rejected"
+    if status in ("submitted", "awaiting_confirmation", "needs_followup", "in_progress"):
+        return "inflight"
+    return "idle"
 
 
 def _walk(w):
@@ -122,14 +146,14 @@ def polish(root: tk.Misc) -> None:
         try:
             if cls == "Text":
                 w.configure(background=P["surface"], foreground=P["text"],
-                            insertbackground=P["text"], relief="solid", borderwidth=1,
+                            insertbackground=P["accent"], relief="solid", borderwidth=1,
                             highlightthickness=1, highlightbackground=P["border"],
                             highlightcolor=P["accent"], padx=8, pady=6, font=FONT)
             elif cls == "Listbox":
                 w.configure(background=P["surface"], foreground=P["text"],
                             relief="solid", borderwidth=1, highlightthickness=1,
                             highlightbackground=P["border"], highlightcolor=P["accent"],
-                            selectbackground=P["sel"], selectforeground=P["text"],
+                            selectbackground=P["accent"], selectforeground=P["on_color"],
                             activestyle="none", font=FONT)
             elif cls in ("Toplevel", "Tk"):
                 w.configure(background=P["bg"])

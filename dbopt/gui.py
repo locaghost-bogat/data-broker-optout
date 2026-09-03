@@ -68,7 +68,8 @@ class PeopleTab(ttk.Frame):
         btns = ttk.Frame(left)
         btns.pack(fill="x")
         ttk.Button(btns, text="New", command=self._new).pack(side="left")
-        ttk.Button(btns, text="Delete", command=self._delete).pack(side="left", padx=4)
+        ttk.Button(btns, text="Delete", command=self._delete,
+                   style="Danger.TButton").pack(side="left", padx=4)
 
         right = ttk.Frame(self)
         right.pack(side="left", fill="both", expand=True, padx=(PAD * 2, 0))
@@ -100,7 +101,7 @@ class PeopleTab(ttk.Frame):
 
         save = ttk.Frame(right)
         save.grid(row=r + 2, column=1, sticky="e", pady=(6, 0))
-        self.status_lbl = ttk.Label(right, text="", foreground="#666")
+        self.status_lbl = ttk.Label(right, text="", style="Muted.TLabel")
         self.status_lbl.grid(row=r + 2, column=0, sticky="w")
         ttk.Button(save, text="Save person", command=self._save,
                    style="Accent.TButton").pack(side="left")
@@ -136,7 +137,7 @@ class PeopleTab(ttk.Frame):
         ok, missing = p.is_complete_enough()
         self.status_lbl.config(
             text="Looks complete." if ok else "Still needs: " + ", ".join(missing),
-            foreground="#2a7" if ok else "#a60")
+            foreground=theme.P["success_hover"] if ok else theme.P["warn"])
 
     def _new(self):
         if len(self.store.profiles) >= MAX_PROFILES:
@@ -147,7 +148,7 @@ class PeopleTab(ttk.Frame):
             v.set("")
         self.addr_text.delete("1.0", "end")
         self.notes_text.delete("1.0", "end")
-        self.status_lbl.config(text="New person — fill in and Save.", foreground="#666")
+        self.status_lbl.config(text="New person — fill in and Save.", foreground=theme.P["muted"])
 
     def _collect(self) -> Profile:
         p = self.current or Profile()
@@ -252,9 +253,11 @@ class BrokersTab(ttk.Frame):
         top.pack(fill="x")
         self.count_lbl = ttk.Label(top, text="")
         self.count_lbl.pack(side="left")
-        ttk.Button(top, text="Add", command=self._add).pack(side="right")
+        ttk.Button(top, text="Add", command=self._add,
+                   style="Accent.TButton").pack(side="right")
         ttk.Button(top, text="Edit", command=self._edit).pack(side="right", padx=4)
-        ttk.Button(top, text="Delete", command=self._delete).pack(side="right")
+        ttk.Button(top, text="Delete", command=self._delete,
+                   style="Danger.TButton").pack(side="right")
 
         cols = ("name", "category", "method", "verified", "source")
         self.tree = ttk.Treeview(self, columns=cols, show="headings", height=14)
@@ -390,11 +393,13 @@ class RequestsTab(ttk.Frame):
                    style="Accent.TButton").pack(side="left")
         ttk.Button(bar, text="Open last draft", command=self._open_draft).pack(side="left", padx=4)
         ttk.Button(bar, text="Copy email text", command=self._copy_text).pack(side="left")
-        for label, status in [("Mark submitted", "submitted"),
-                              ("Awaiting confirm", "awaiting_confirmation"),
-                              ("Mark removed", "confirmed_removed"),
-                              ("Mark rejected", "rejected")]:
-            ttk.Button(bar, text=label, command=lambda s=status: self._set_status(s)).pack(side="left", padx=2)
+        for label, status, sty in [("Mark submitted", "submitted", ""),
+                                   ("Awaiting confirm", "awaiting_confirmation", ""),
+                                   ("Mark removed", "confirmed_removed", "Success.TButton"),
+                                   ("Mark rejected", "rejected", "Danger.TButton")]:
+            kw = {"style": sty} if sty else {}
+            ttk.Button(bar, text=label, command=lambda s=status: self._set_status(s),
+                       **kw).pack(side="left", padx=2)
         ttk.Button(bar, text="Add note", command=self._add_note).pack(side="left", padx=2)
 
         self._last = None
@@ -432,9 +437,10 @@ class RequestsTab(ttk.Frame):
             self.progress_lbl.config(text="Add a person on the People tab first.")
             return
         recs = self.rstore.all_for_profile(p.id)
+        theme.status_tags(self.tree)
         for b in brokers.list_brokers():
             r = recs[b["id"]]
-            self.tree.insert("", "end", iid=b["id"], values=(
+            self.tree.insert("", "end", iid=b["id"], tags=(theme.status_tag(r["status"]),), values=(
                 b.get("name", ""), b.get("method", ""),
                 STATUS_LABEL.get(r["status"], r["status"]),
                 r.get("next_action_due") or "",
@@ -562,7 +568,7 @@ class UpdatesTab(ttk.Frame):
                    style="Accent.TButton").grid(row=5, column=0, sticky="w", pady=6)
         grid.columnconfigure(0, weight=1)
 
-        self.info = ttk.Label(self, text="", foreground="#555", justify="left")
+        self.info = ttk.Label(self, text="", style="Muted.TLabel", justify="left")
         self.info.pack(anchor="w", pady=(4, 0))
 
         bar = ttk.Frame(self)
@@ -725,9 +731,9 @@ class SettingsTab(ttk.Frame):
             "Tokens:  {broker} = broker id   {local}/{domain} = parts of the person's email   {email} = it in full\n"
             "Examples:   bogatyrov+{broker}@gmail.com     bogatyrov+optout@gmail.com     {local}.{broker}@duck.com\n"
             "Gmail/iCloud/DuckDuckGo aliases all forward to your inbox, so confirmation links still reach you."
-        ), foreground="#666", justify="left").grid(row=5, column=1, sticky="w", pady=(0, 6))
+        ), style="Muted.TLabel", justify="left").grid(row=5, column=1, sticky="w", pady=(0, 6))
 
-        self.preview = ttk.Label(g, text="", foreground="#0a5bd3")
+        self.preview = ttk.Label(g, text="", style="OK.TLabel")
         self.preview.grid(row=6, column=1, sticky="w")
 
         ttk.Button(g, text="Save settings", command=self._save,
