@@ -27,6 +27,8 @@ PALETTE = {
 
     "sel":           "#DED4FB",   # row / list selection
     "warn":          "#D97A00",
+    "pink":          "#FBE0EC",   # "your info was found here" row tint
+    "pink_text":     "#B21E63",
 }
 P = PALETTE
 
@@ -121,6 +123,11 @@ def status_tags(tree: ttk.Treeview) -> None:
     tree.tag_configure("rejected", foreground=P["danger_hover"], font=FONT_BOLD)
     tree.tag_configure("inflight", foreground=P["accent"])
     tree.tag_configure("idle", foreground=P["muted"])
+
+
+def exposed_tags(tree: ttk.Treeview) -> None:
+    """Pink tint for brokers a scan found the person's data on."""
+    tree.tag_configure("exposed", background=P["pink"], foreground=P["pink_text"])
 
 
 def status_tag(status: str) -> str:

@@ -288,11 +288,23 @@ class BrokersTab(ttk.Frame):
 
     def refresh(self):
         self.tree.delete(*self.tree.get_children())
-        for b in brokers.list_brokers():
-            self.tree.insert("", "end", iid=b["id"], values=(
-                b.get("name", ""), b.get("category", ""), b.get("method", ""),
-                b.get("last_verified", ""), b.get("source", "seed")))
-        self.count_lbl.config(text=f"{len(brokers.list_brokers())} data-broker sites in catalogue")
+        theme.exposed_tags(self.tree)
+        allb = brokers.list_brokers()
+        exposed = [b for b in allb if b.get("exposed")]
+        rest = [b for b in allb if not b.get("exposed")]
+        for b in exposed + rest:
+            self.tree.insert("", "end", iid=b["id"],
+                             tags=("exposed",) if b.get("exposed") else (),
+                             values=(
+                                 ("• " if b.get("exposed") else "") + b.get("name", ""),
+                                 b.get("category", ""), b.get("method", ""),
+                                 b.get("last_verified", ""), b.get("source", "seed")))
+        if exposed:
+            self.count_lbl.config(
+                text=f"{len(allb)} sites  ·  {len(exposed)} have your info "
+                     f"(pink, top)")
+        else:
+            self.count_lbl.config(text=f"{len(allb)} data-broker sites in catalogue")
         self.app.refresh_broker_dependents()
 
     def _on_select(self, _=None):
@@ -301,6 +313,10 @@ class BrokersTab(ttk.Frame):
             return
         lines = [
             f"{b.get('name')}  [{b.get('id')}]",
+        ]
+        if b.get("exposed"):
+            lines.append(f"⚠ YOUR INFO WAS FOUND HERE — {b.get('exposed_note','')}")
+        lines += [
             f"Site:        {b.get('site','')}",
             f"Opt-out:     {b.get('opt_out_url','')}",
             f"Method:      {b.get('method','')}   Confirmation: {b.get('confirmation','')}",
@@ -438,10 +454,15 @@ class RequestsTab(ttk.Frame):
             return
         recs = self.rstore.all_for_profile(p.id)
         theme.status_tags(self.tree)
-        for b in brokers.list_brokers():
+        theme.exposed_tags(self.tree)
+        allb = brokers.list_brokers()
+        ordered = [b for b in allb if b.get("exposed")] + [b for b in allb if not b.get("exposed")]
+        for b in ordered:
             r = recs[b["id"]]
-            self.tree.insert("", "end", iid=b["id"], tags=(theme.status_tag(r["status"]),), values=(
-                b.get("name", ""), b.get("method", ""),
+            tags = (("exposed",) if b.get("exposed") else ()) + (theme.status_tag(r["status"]),)
+            self.tree.insert("", "end", iid=b["id"], tags=tags, values=(
+                ("• " if b.get("exposed") else "") + b.get("name", ""),
+                b.get("method", ""),
                 STATUS_LABEL.get(r["status"], r["status"]),
                 r.get("next_action_due") or "",
                 (r.get("updated_at") or "")[:16].replace("T", " ")))

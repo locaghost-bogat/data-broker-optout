@@ -459,6 +459,31 @@ def main(argv=None) -> int:
     except Exception as exc:  # noqa: BLE001
         sys.exit(f"output failed the app's validation: {exc}")
 
+    # Carry forward exposure flags + scan-only brokers from tools/apply_exposure_scan.py.
+    if args.out.exists():
+        try:
+            prev = json.loads(args.out.read_text(encoding="utf-8"))
+            prev_by_id = {b["id"]: b for b in prev.get("brokers", [])}
+            have = {b["id"] for b in result["brokers"]}
+            flagged = restored = 0
+            for b in result["brokers"]:
+                pb = prev_by_id.get(b["id"])
+                if pb and pb.get("exposed"):
+                    b["exposed"] = True
+                    b["exposed_note"] = pb.get("exposed_note", "")
+                    flagged += 1
+            for bid, pb in prev_by_id.items():
+                if bid not in have and (pb.get("exposed") or pb.get("source") == "optery-scan"):
+                    result["brokers"].append(pb)
+                    restored += 1
+            result["brokers"].sort(key=lambda x: x["name"].lower())
+            if prev.get("exposure_scans"):
+                result["exposure_scans"] = prev["exposure_scans"]
+            if flagged or restored:
+                print(f"carried forward {flagged} exposure flags, restored {restored} scan-only brokers")
+        except (json.JSONDecodeError, OSError):
+            pass
+
     total = len(result["brokers"])
     print(
         f"seed={stats['seed']}  +community={stats['added']}  +fronts={stats['fronts_added']}  "
