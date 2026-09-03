@@ -18,7 +18,7 @@ _REMOTE_FIELDS = (
     "name", "category", "site", "opt_out_url", "method", "privacy_email",
     "privacy_phone", "mailing_address", "confirmation", "requires_id",
     "typical_completion_days", "regions", "law_basis", "instructions",
-    "last_verified",
+    "last_verified", "exposed", "exposed_note",
 )
 
 REQUIRED_FIELDS = ("id", "name", "opt_out_url", "method")
