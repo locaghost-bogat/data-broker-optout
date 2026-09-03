@@ -677,6 +677,77 @@ class AboutTab(ttk.Frame):
         t.pack(fill="both", expand=True)
 
 
+# --------------------------------------------------------------------------- Settings tab
+class SettingsTab(ttk.Frame):
+    def __init__(self, master, app):
+        super().__init__(master, padding=PAD)
+        self.app = app
+        s = Settings()
+
+        g = ttk.Frame(self)
+        g.pack(fill="x")
+        g.columnconfigure(1, weight=1)
+
+        ttk.Label(g, text="Your name (signs the requests):").grid(row=0, column=0, sticky="w", pady=3)
+        self.sig = tk.StringVar(value=s["signature_name"])
+        ttk.Entry(g, textvariable=self.sig).grid(row=0, column=1, sticky="we", pady=3)
+
+        self.agent = tk.BooleanVar(value=bool(s["is_authorized_agent"]))
+        ttk.Checkbutton(g, text="I am an authorized agent acting for the people above",
+                        variable=self.agent).grid(row=1, column=1, sticky="w", pady=3)
+
+        ttk.Label(g, text="Default legal basis:").grid(row=2, column=0, sticky="w", pady=3)
+        self.law = tk.StringVar(value=s["default_law_basis"])
+        ttk.Combobox(g, textvariable=self.law, values=LAW_BASES, state="readonly",
+                     width=20).grid(row=2, column=1, sticky="w", pady=3)
+
+        ttk.Label(g, text="Reply-to email (plain):").grid(row=3, column=0, sticky="w", pady=3)
+        self.reply = tk.StringVar(value=s["reply_to_email"])
+        ttk.Entry(g, textvariable=self.reply).grid(row=3, column=1, sticky="we", pady=3)
+
+        ttk.Label(g, text="Masked / relay alias pattern:").grid(row=4, column=0, sticky="nw", pady=3)
+        self.alias = tk.StringVar(value=s["email_alias_pattern"])
+        ae = ttk.Entry(g, textvariable=self.alias)
+        ae.grid(row=4, column=1, sticky="we", pady=3)
+        self.alias.trace_add("write", lambda *_: self._preview())
+
+        ttk.Label(g, text=(
+            "When set, this is the From + Reply-To on every request instead of your real inbox.\n"
+            "Tokens:  {broker} = broker id   {local}/{domain} = parts of the person's email   {email} = it in full\n"
+            "Examples:   bogatyrov+{broker}@gmail.com     bogatyrov+optout@gmail.com     {local}.{broker}@duck.com\n"
+            "Gmail/iCloud/DuckDuckGo aliases all forward to your inbox, so confirmation links still reach you."
+        ), foreground="#666", justify="left").grid(row=5, column=1, sticky="w", pady=(0, 6))
+
+        self.preview = ttk.Label(g, text="", foreground="#0a5bd3")
+        self.preview.grid(row=6, column=1, sticky="w")
+
+        ttk.Button(g, text="Save settings", command=self._save).grid(row=7, column=1, sticky="e", pady=8)
+
+        self._preview()
+
+    def _preview(self):
+        from .templates import contact_email
+        p = self.app.pstore.profiles[0] if self.app.pstore.profiles else None
+        if not p:
+            self.preview.config(text="(add a person to preview the address)")
+            return
+        s = Settings()
+        s["email_alias_pattern"] = self.alias.get().strip()
+        s["reply_to_email"] = self.reply.get().strip()
+        sample = contact_email(p, s, {"id": "spokeo"}) or "(the person's own email)"
+        self.preview.config(text="Requests to Spokeo would come from:  " + sample)
+
+    def _save(self):
+        Settings().update(
+            signature_name=self.sig.get().strip(),
+            is_authorized_agent=bool(self.agent.get()),
+            default_law_basis=self.law.get(),
+            reply_to_email=self.reply.get().strip(),
+            email_alias_pattern=self.alias.get().strip(),
+        )
+        messagebox.showinfo(__app_name__, "Saved. New drafts will use these settings.")
+
+
 # --------------------------------------------------------------------------- App
 class App(tk.Tk):
     def __init__(self):
@@ -694,10 +765,12 @@ class App(tk.Tk):
         self.brokers_tab = BrokersTab(nb, self)
         self.requests_tab = RequestsTab(nb, self)
         self.updates_tab = UpdatesTab(nb, self)
+        self.settings_tab = SettingsTab(nb, self)
         nb.add(self.people_tab, text="People")
         nb.add(self.brokers_tab, text="Brokers")
         nb.add(self.requests_tab, text="Requests")
         nb.add(self.updates_tab, text="Updates")
+        nb.add(self.settings_tab, text="Settings")
         nb.add(AboutTab(nb, self), text="About")
 
         self._followup_banner()

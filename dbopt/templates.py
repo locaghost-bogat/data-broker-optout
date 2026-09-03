@@ -9,6 +9,24 @@ from __future__ import annotations
 from .models import Profile, Settings
 
 
+def contact_email(p: Profile, s: Settings, broker: dict | None = None) -> str:
+    """The address a broker should reply to / send confirmation links to.
+
+    Uses settings['email_alias_pattern'] (per-broker masked address) when set,
+    else settings['reply_to_email'], else the profile's own first email.
+    """
+    real = p.emails[0] if p.emails else ""
+    pattern = (s["email_alias_pattern"] or "").strip()
+    if not pattern:
+        return s["reply_to_email"] or real
+    local, _, domain = real.partition("@")
+    bid = (broker or {}).get("id", "broker")
+    try:
+        return pattern.format(broker=bid, local=local, domain=domain, email=real)
+    except (KeyError, IndexError, ValueError):
+        return pattern
+
+
 def _identity_block(p: Profile) -> str:
     cur = p.current_address()
     lines = [
@@ -41,9 +59,9 @@ def _listing_block(listing_urls: list[str]) -> str:
     )
 
 
-def _signature(s: Settings, p: Profile) -> str:
+def _signature(s: Settings, p: Profile, broker: dict | None = None) -> str:
     name = s["signature_name"] or p.full_name
-    reply = s["reply_to_email"] or (p.emails[0] if p.emails else "")
+    reply = contact_email(p, s, broker)
     agent = " (authorized agent for the individual named above)" if s["is_authorized_agent"] and s["signature_name"] else ""
     out = name + agent
     if reply:
@@ -81,7 +99,7 @@ believe you are exempt (e.g. FCRA-regulated data), identify the specific data an
 exemption and delete everything not covered.
 
 Regards,
-{_signature(s, p)}
+{_signature(s, p, broker)}
 """
     return subject, body
 
@@ -107,7 +125,7 @@ Please act without undue delay and within one month (Article 12(3)). If you
 refuse, state your reasons and my right to complain to a supervisory authority.
 
 Regards,
-{_signature(s, p)}
+{_signature(s, p, broker)}
 """
     return subject, body
 
@@ -136,7 +154,7 @@ creation. If any data is exempt under the FCRA or GLBA, identify it specifically
 and delete the remainder.
 
 Regards,
-{_signature(s, p)}
+{_signature(s, p, broker)}
 """
     return subject, body
 

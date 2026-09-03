@@ -33,6 +33,15 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "signature_name": "",
     "reply_to_email": "",
     "is_authorized_agent": True,
+    # Optional masked / relay address used as the From + Reply-To on requests, so
+    # brokers never get your real inbox. Tokens: {broker} = broker id,
+    # {local}/{domain} = parts of the profile's first email, {email} = that email.
+    # Examples:
+    #   "bogatyrov+{broker}@gmail.com"   (Gmail plus-addressing, per-broker)
+    #   "bogatyrov+optout@gmail.com"     (one fixed alias)
+    #   "{local}.{broker}@duck.com"      (DuckDuckGo / custom relay)
+    # Empty  ->  use reply_to_email, else the profile's own first email.
+    "email_alias_pattern": "",
 }
 
 

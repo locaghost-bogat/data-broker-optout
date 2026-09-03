@@ -155,11 +155,13 @@ def draft_eml(profile: Profile, broker: dict, settings: Settings,
     subject, body = templates.build(law, profile, broker, settings, listing_urls or [])
 
     to_addr = broker.get("privacy_email") or ""
+    from_addr = templates.contact_email(profile, settings, broker)
     msg = EmailMessage()
     msg["To"] = to_addr
     msg["Subject"] = subject
-    if settings["reply_to_email"] or profile.emails:
-        msg["From"] = settings["reply_to_email"] or profile.emails[0]
+    if from_addr:
+        msg["From"] = from_addr
+        msg["Reply-To"] = from_addr
     msg["Date"] = format_datetime(datetime.now())
     msg["X-Unsent"] = "1"  # Apple Mail: open as an unsent draft
     msg.set_content(body)
