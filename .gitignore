@@ -16,3 +16,6 @@ dist/
 *.eml
 
 # Keep brokers.json tracked — it is the published artifact the app pulls.
+
+# generated worklists
+out/
