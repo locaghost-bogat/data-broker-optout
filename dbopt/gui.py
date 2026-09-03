@@ -11,7 +11,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from . import __app_name__, __version__, brokers
+from . import __app_name__, __version__, brokers, theme
 from .engine import (DONE_STATUSES, STATUS_LABEL, STATUSES, RequestStore,
                      mailto_link, open_path, open_url, prepare_request,
                      progress_for_profile)
@@ -102,7 +102,8 @@ class PeopleTab(ttk.Frame):
         save.grid(row=r + 2, column=1, sticky="e", pady=(6, 0))
         self.status_lbl = ttk.Label(right, text="", foreground="#666")
         self.status_lbl.grid(row=r + 2, column=0, sticky="w")
-        ttk.Button(save, text="Save person", command=self._save).pack(side="left")
+        ttk.Button(save, text="Save person", command=self._save,
+                   style="Accent.TButton").pack(side="left")
 
         self.refresh()
 
@@ -220,8 +221,10 @@ class BrokerDialog(tk.Toplevel):
         bar = ttk.Frame(self)
         bar.grid(row=len(self.FIELDS) + 1, column=1, sticky="e", padx=PAD, pady=PAD)
         ttk.Button(bar, text="Cancel", command=self.destroy).pack(side="left")
-        ttk.Button(bar, text="Save", command=self._save).pack(side="left", padx=4)
+        ttk.Button(bar, text="Save", command=self._save,
+                   style="Accent.TButton").pack(side="left", padx=4)
         self._existing = b
+        theme.polish(self)
 
     def _save(self):
         data = dict(self._existing)
@@ -268,7 +271,8 @@ class BrokersTab(ttk.Frame):
 
         bar = ttk.Frame(self)
         bar.pack(fill="x", pady=(6, 0))
-        ttk.Button(bar, text="Open opt-out page", command=self._open_page).pack(side="left")
+        ttk.Button(bar, text="Open opt-out page", command=self._open_page,
+                   style="Accent.TButton").pack(side="left")
         ttk.Button(bar, text="Draft privacy email", command=self._open_mail).pack(side="left", padx=4)
 
         self.refresh()
@@ -382,7 +386,8 @@ class RequestsTab(ttk.Frame):
 
         bar = ttk.Frame(self)
         bar.pack(fill="x", pady=(4, 0))
-        ttk.Button(bar, text="Prepare request", command=self._prepare).pack(side="left")
+        ttk.Button(bar, text="Prepare request", command=self._prepare,
+                   style="Accent.TButton").pack(side="left")
         ttk.Button(bar, text="Open last draft", command=self._open_draft).pack(side="left", padx=4)
         ttk.Button(bar, text="Copy email text", command=self._copy_text).pack(side="left")
         for label, status in [("Mark submitted", "submitted"),
@@ -528,7 +533,9 @@ class RequestsTab(ttk.Frame):
                 self.rstore.add_note(p.id, bid, note)
                 self.refresh_rows()
             win.destroy()
-        ttk.Button(win, text="Save note", command=save).pack(pady=(0, PAD))
+        ttk.Button(win, text="Save note", command=save,
+                   style="Accent.TButton").pack(pady=(0, PAD))
+        theme.polish(win)
 
 
 # --------------------------------------------------------------------------- Updates tab
@@ -551,7 +558,8 @@ class UpdatesTab(ttk.Frame):
         self.auto_var = tk.BooleanVar(value=bool(s["auto_update_enabled"]))
         ttk.Checkbutton(grid, text="Enable automatic monthly update",
                         variable=self.auto_var).grid(row=4, column=0, sticky="w", pady=(6, 0))
-        ttk.Button(grid, text="Save settings", command=self._save).grid(row=5, column=0, sticky="w", pady=6)
+        ttk.Button(grid, text="Save settings", command=self._save,
+                   style="Accent.TButton").grid(row=5, column=0, sticky="w", pady=6)
         grid.columnconfigure(0, weight=1)
 
         self.info = ttk.Label(self, text="", foreground="#555", justify="left")
@@ -559,7 +567,8 @@ class UpdatesTab(ttk.Frame):
 
         bar = ttk.Frame(self)
         bar.pack(fill="x", pady=6)
-        self.check_btn = ttk.Button(bar, text="Check for updates now (manual)", command=self._check_now)
+        self.check_btn = ttk.Button(bar, text="Check for updates now (manual)",
+                                    command=self._check_now, style="Accent.TButton")
         self.check_btn.pack(side="left")
         ttk.Button(bar, text="Install monthly auto-update (launchd)",
                    command=self._install).pack(side="left", padx=6)
@@ -721,7 +730,8 @@ class SettingsTab(ttk.Frame):
         self.preview = ttk.Label(g, text="", foreground="#0a5bd3")
         self.preview.grid(row=6, column=1, sticky="w")
 
-        ttk.Button(g, text="Save settings", command=self._save).grid(row=7, column=1, sticky="e", pady=8)
+        ttk.Button(g, text="Save settings", command=self._save,
+                   style="Accent.TButton").grid(row=7, column=1, sticky="e", pady=8)
 
         self._preview()
 
@@ -753,14 +763,22 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(__app_name__)
-        self.geometry("980x680")
+        self.geometry("1000x700")
         self.minsize(880, 600)
+
+        theme.apply(self)
 
         self.pstore = ProfileStore()
         self.rstore = RequestStore()
 
+        header = ttk.Frame(self, padding=(PAD * 2, PAD, PAD * 2, 0))
+        header.pack(fill="x")
+        ttk.Label(header, text=__app_name__, style="H1.TLabel").pack(side="left")
+        ttk.Label(header, text=f"v{__version__}", style="Muted.TLabel").pack(side="left", padx=(8, 0), pady=(6, 0))
+        ttk.Frame(self, height=2, style="Accentline.TFrame").pack(fill="x", padx=PAD * 2, pady=(6, 0))
+
         nb = ttk.Notebook(self)
-        nb.pack(fill="both", expand=True)
+        nb.pack(fill="both", expand=True, padx=PAD, pady=PAD)
         self.people_tab = PeopleTab(nb, self)
         self.brokers_tab = BrokersTab(nb, self)
         self.requests_tab = RequestsTab(nb, self)
@@ -773,6 +791,7 @@ class App(tk.Tk):
         nb.add(self.settings_tab, text="Settings")
         nb.add(AboutTab(nb, self), text="About")
 
+        theme.polish(self)
         self._followup_banner()
 
     def refresh_people_dependents(self):
