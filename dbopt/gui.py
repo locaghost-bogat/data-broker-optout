@@ -264,19 +264,22 @@ class BrokersTab(ttk.Frame):
         for c, w in zip(cols, (200, 150, 110, 100, 80)):
             self.tree.heading(c, text=c.title())
             self.tree.column(c, width=w, anchor="w")
-        self.tree.pack(fill="both", expand=True, pady=6)
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
         self.tree.bind("<Double-1>", lambda e: self._edit())
 
-        self.detail = tk.Text(self, height=8, wrap="word")
-        self.detail.pack(fill="x")
-        self.detail.config(state="disabled")
-
+        # Pin the action bar + detail box to the bottom so they never clip;
+        # the table takes whatever height is left.
         bar = ttk.Frame(self)
-        bar.pack(fill="x", pady=(6, 0))
+        bar.pack(side="bottom", fill="x", pady=(8, 0))
         ttk.Button(bar, text="Open opt-out page", command=self._open_page,
                    style="Accent.TButton").pack(side="left")
-        ttk.Button(bar, text="Draft privacy email", command=self._open_mail).pack(side="left", padx=4)
+        ttk.Button(bar, text="Draft privacy email", command=self._open_mail).pack(side="left", padx=6)
+
+        self.detail = tk.Text(self, height=7, wrap="word")
+        self.detail.pack(side="bottom", fill="x", pady=(6, 6))
+        self.detail.config(state="disabled")
+
+        self.tree.pack(side="top", fill="both", expand=True, pady=(6, 0))
 
         self.refresh()
 

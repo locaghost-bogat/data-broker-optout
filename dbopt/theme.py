@@ -1,8 +1,9 @@
-"""Vivid light theme for the Tkinter UI.
+"""Trust-Blue light theme for the Tkinter UI.
 
 macOS's native `aqua` ttk theme ignores almost every colour option, so we switch
-to `clam` and paint it by hand: a lavender canvas, saturated violet / green / red
-action buttons, bold numerals, colour-coded status rows.
+to `clam` and paint it by hand. Palette: white / very-light ground, one blue
+(#2563EB) for primary actions, blue-outline secondary buttons, green for
+success, a soft pink tint for "your info was found here" rows.
 """
 from __future__ import annotations
 
@@ -10,25 +11,27 @@ import tkinter as tk
 from tkinter import ttk
 
 PALETTE = {
-    "bg":            "#E7E3F1",   # lavender canvas
+    "bg":            "#F5F7FA",   # window
     "surface":       "#FFFFFF",   # cards, tables, inputs
-    "surface_alt":   "#EDEAF7",   # table headings, inactive tabs
-    "border":        "#CBC3E4",
-    "text":          "#191325",
-    "muted":         "#6C6484",
+    "surface_alt":   "#F3F4F6",   # table headings, inactive tabs
+    "border":        "#E3E7EC",
+    "text":          "#111827",
+    "muted":         "#6B7280",
 
-    "accent":        "#6C47E6",   # violet  -> primary action
-    "accent_hover":  "#5A38CC",
-    "success":       "#1FC15E",   # green   -> positive / "removed"
-    "success_hover": "#17A94F",
-    "danger":        "#F0473F",   # red     -> delete / rejected
-    "danger_hover":  "#D93A33",
-    "on_color":      "#FFFFFF",
+    "accent":        "#2563EB",   # primary
+    "accent_hover":  "#1D4ED8",
+    "accent_tint":   "#EFF6FF",   # secondary-button hover fill
+    "on_accent":     "#FFFFFF",
 
-    "sel":           "#DED4FB",   # row / list selection
-    "warn":          "#D97A00",
-    "pink":          "#FBE0EC",   # "your info was found here" row tint
-    "pink_text":     "#B21E63",
+    "success":       "#22C55E",
+    "success_hover": "#16A34A",
+    "danger":        "#EF4444",
+    "danger_hover":  "#DC2626",
+
+    "sel":           "#DBEAFE",   # row / list selection
+    "warn":          "#B45309",
+    "pink":          "#FCE7F3",   # "your info was found here" row tint
+    "pink_text":     "#9D174D",
 }
 P = PALETTE
 
@@ -64,46 +67,46 @@ def apply(root: tk.Misc) -> None:
     style.configure("Warn.TLabel", background=P["bg"], foreground=P["warn"], font=FONT_BOLD)
     style.configure("Accentline.TFrame", background=P["accent"])
 
-    # --- buttons: flat, saturated, chunky ---------------------------------
-    style.configure("TButton", background=P["surface"], foreground=P["text"],
-                    bordercolor=P["border"], relief="flat", borderwidth=1,
-                    padding=(14, 9), font=FONT_BOLD, anchor="center")
+    # --- secondary button: white fill, blue outline + blue label (clearly a button)
+    style.configure("TButton", background=P["surface"], foreground=P["accent"],
+                    bordercolor=P["accent"], relief="solid", borderwidth=1,
+                    padding=(16, 10), font=FONT_BOLD, anchor="center")
     style.map("TButton",
-              background=[("pressed", P["surface_alt"]), ("active", "#F4F1FD"),
+              background=[("pressed", P["accent_tint"]), ("active", P["accent_tint"]),
                          ("disabled", P["surface_alt"])],
               foreground=[("disabled", P["muted"])],
-              bordercolor=[("focus", P["accent"]), ("active", P["accent"])])
+              bordercolor=[("disabled", P["border"])])
 
     def _solid(name: str, fill: str, hover: str, disabled: str) -> None:
-        style.configure(name, background=fill, foreground=P["on_color"],
+        style.configure(name, background=fill, foreground=P["on_accent"],
                         bordercolor=fill, relief="flat", borderwidth=0,
-                        padding=(17, 9), font=FONT_BOLD)
+                        padding=(18, 10), font=FONT_BOLD)
         style.map(name,
                   background=[("pressed", hover), ("active", hover), ("disabled", disabled)],
                   foreground=[("disabled", "#FFFFFFCC")])
 
-    _solid("Accent.TButton", P["accent"], P["accent_hover"], "#B7A4F2")
+    _solid("Accent.TButton", P["accent"], P["accent_hover"], "#9DBEF6")
     _solid("Success.TButton", P["success"], P["success_hover"], "#A7E7C2")
-    _solid("Danger.TButton", P["danger"], P["danger_hover"], "#F3B3AF")
+    _solid("Danger.TButton", P["danger"], P["danger_hover"], "#F3B4B4")
 
-    # --- notebook -----------------------------------------------------
+    # --- notebook ----------------------------------------------------
     style.configure("TNotebook", background=P["bg"], borderwidth=0, tabmargins=(6, 6, 6, 0))
     style.configure("TNotebook.Tab", background=P["surface_alt"], foreground=P["muted"],
                     padding=(18, 9), borderwidth=0, font=FONT_BOLD)
     style.map("TNotebook.Tab",
               background=[("selected", P["accent"])],
-              foreground=[("selected", P["on_color"])])
+              foreground=[("selected", P["on_accent"])])
 
-    # --- tables -----------------------------------------------------
+    # --- tables ----------------------------------------------------
     style.configure("Treeview", background=P["surface"], fieldbackground=P["surface"],
                     foreground=P["text"], rowheight=27, borderwidth=1, relief="solid")
-    style.configure("Treeview.Heading", background=P["accent"], foreground=P["on_color"],
+    style.configure("Treeview.Heading", background=P["surface_alt"], foreground=P["muted"],
                     relief="flat", padding=7, font=FONT_BOLD)
     style.map("Treeview",
               background=[("selected", P["sel"])], foreground=[("selected", P["text"])])
-    style.map("Treeview.Heading", background=[("active", P["accent_hover"])])
+    style.map("Treeview.Heading", background=[("active", P["border"])])
 
-    # --- inputs -----------------------------------------------------
+    # --- inputs ----------------------------------------------------
     for el in ("TEntry", "TCombobox", "TSpinbox"):
         style.configure(el, fieldbackground=P["surface"], background=P["surface"],
                         foreground=P["text"], bordercolor=P["border"],
@@ -118,7 +121,6 @@ def apply(root: tk.Misc) -> None:
 
 
 def status_tags(tree: ttk.Treeview) -> None:
-    """Colour-code Treeview rows by request status (call once per tree)."""
     tree.tag_configure("removed", foreground=P["success_hover"], font=FONT_BOLD)
     tree.tag_configure("rejected", foreground=P["danger_hover"], font=FONT_BOLD)
     tree.tag_configure("inflight", foreground=P["accent"])
@@ -160,7 +162,7 @@ def polish(root: tk.Misc) -> None:
                 w.configure(background=P["surface"], foreground=P["text"],
                             relief="solid", borderwidth=1, highlightthickness=1,
                             highlightbackground=P["border"], highlightcolor=P["accent"],
-                            selectbackground=P["accent"], selectforeground=P["on_color"],
+                            selectbackground=P["accent"], selectforeground=P["on_accent"],
                             activestyle="none", font=FONT)
             elif cls in ("Toplevel", "Tk"):
                 w.configure(background=P["bg"])
