@@ -154,7 +154,7 @@ def process_queue(force: bool = False, now: datetime | None = None,
     settings = Settings()
     now = now or datetime.now()
     send = send_fn or mailsend.send_via_mail
-    summary = {"status": "", "sent": 0, "failed": 0, "deferred": 0, "detail": ""}
+    summary = {"status": "", "sent": 0, "failed": 0, "deferred": 0, "skipped": 0, "detail": ""}
 
     if not force:
         if not settings["auto_send_enabled"]:
@@ -175,16 +175,30 @@ def process_queue(force: bool = False, now: datetime | None = None,
         return summary
 
     batch_size = max(1, int(settings.get("send_batch_size") or 1))
-    batch = pending[:batch_size]
     pstore = ProfileStore()
     rstore = engine.RequestStore()
+    sent_or_deferred_or_failed = 0
 
-    for item in batch:
+    for item in pending:
+        if sent_or_deferred_or_failed >= batch_size:
+            break
+
         profile = pstore.get(item["profile_id"])
         broker = brokers.get(item["broker_id"])
         if not profile or not broker:
             q.mark(item["id"], "skipped", "person or broker no longer exists")
-            summary["failed"] += 1
+            summary["skipped"] += 1
+            continue
+
+        # Send Bot can only email; a broker with no privacy_email on file is a
+        # web-form-only broker (~half the catalogue). Retrying that would just
+        # fail forever, so skip it immediately (no attempt burned) instead of
+        # occupying the batch for 3 cycles before ever reaching a sendable one.
+        if not broker.get("privacy_email"):
+            q.mark(item["id"], "skipped",
+                  "This broker has no direct email on file (web-form only). "
+                  "Use Requests tab -> Prepare request, then submit via their site instead.")
+            summary["skipped"] += 1
             continue
 
         law = item.get("law_basis") or (broker.get("law_basis") or [settings["default_law_basis"]])[0]
@@ -220,9 +234,11 @@ def process_queue(force: bool = False, now: datetime | None = None,
             item["last_error"] = detail
             q.save()
             summary["deferred"] += 1
+        sent_or_deferred_or_failed += 1
 
     settings.update(send_last_run=now.isoformat(timespec="seconds"))
     summary["status"] = "ok"
     summary["detail"] = (f"sent {summary['sent']}, failed {summary['failed']}, "
-                         f"retrying later {summary['deferred']}")
+                         f"retrying later {summary['deferred']}, "
+                         f"skipped (no email on file) {summary['skipped']}")
     return summary

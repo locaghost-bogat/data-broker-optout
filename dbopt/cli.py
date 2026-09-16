@@ -196,11 +196,19 @@ def cmd_queue_add(args) -> int:
         return 1
     if args.exposed_only:
         targets = [b for b in targets if b.get("exposed")]
+    # Send Bot only sends email; a broker with no privacy_email is web-form-only
+    # and would just fail forever, so leave those out (use `generate` + the site
+    # for those instead).
+    mailable = [b for b in targets if b.get("privacy_email")]
+    skipped = len(targets) - len(mailable)
     n = 0
-    for b in targets:
+    for b in mailable:
         sendbot.add_to_queue(person.id, b["id"], args.law or "")
         n += 1
     print(f"queued {n} item(s) for {person.display()}")
+    if skipped:
+        print(f"  skipped {skipped} broker(s) with no direct email on file (web-form only) — "
+              "use 'generate' + their site for those instead.")
     return 0
 
 

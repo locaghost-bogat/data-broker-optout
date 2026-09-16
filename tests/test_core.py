@@ -148,6 +148,27 @@ removed = sendbot.SendQueue().clear_terminal()
 check("clear_terminal drops the sent item, keeps the requeued one",
       removed == 1 and len(sendbot.SendQueue().pending()) == 1)
 
+# A web-form-only broker (no privacy_email) must be skipped instantly -- not
+# retried 3x -- and must not block a mailable item queued in the same batch.
+_qclean = sendbot.SendQueue()
+for _it in list(_qclean.all()):
+    _qclean.remove(_it["id"])  # start this scenario from an empty queue
+b_formonly = brokers.get("publicdatausa")
+check("fixture broker really has no email on file", not b_formonly.get("privacy_email"))
+q2 = sendbot.SendQueue()
+q2.add(person2.id, b_formonly["id"])
+q2.add(person2.id, b_spokeo["id"])
+Settings().update(send_batch_size=1)
+r = sendbot.process_queue(force=True, send_fn=_fake_send)
+check("form-only broker skipped instantly, mailable one still sent in the same call",
+      r["skipped"] == 1 and r["sent"] == 1)
+statuses2 = {it["broker_id"]: it["status"] for it in sendbot.SendQueue().all()}
+check("skipped item never consumed a retry attempt",
+      next(it["attempts"] for it in sendbot.SendQueue().all()
+          if it["broker_id"] == b_formonly["id"]) == 0)
+check("skipped item's status is terminal ('skipped'), not left queued",
+      statuses2.get(b_formonly["id"]) == "skipped")
+
 print()
 if failures:
     print(f"{len(failures)} FAILURE(S): {failures}")

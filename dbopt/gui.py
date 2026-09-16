@@ -555,6 +555,13 @@ class RequestsTab(ttk.Frame):
             messagebox.showinfo(__app_name__, "Pick a person and a broker row first.")
             return
         b = brokers.get(bid)
+        if not b.get("privacy_email"):
+            messagebox.showwarning(
+                __app_name__,
+                f"{b['name']} has no direct email on file — it's web-form only.\n\n"
+                "Send Bot can only send email, so it would just fail on this one. "
+                "Use 'Prepare request' above and submit through their site instead.")
+            return
         sendbot.add_to_queue(p.id, bid, self.law_var.get())
         messagebox.showinfo(
             __app_name__,
@@ -997,9 +1004,17 @@ class SendBotTab(ttk.Frame):
             return
         p = profs[idx]
         exposed = [b for b in brokers.list_brokers() if b.get("exposed")]
-        for b in exposed:
+        # Send Bot only sends email; web-form-only brokers would just fail
+        # forever, so leave those for the manual Requests-tab flow instead.
+        mailable = [b for b in exposed if b.get("privacy_email")]
+        for b in mailable:
             sendbot.add_to_queue(p.id, b["id"])
-        messagebox.showinfo(__app_name__, f"Queued {len(exposed)} exposed broker(s) for {p.display()}.")
+        skipped = len(exposed) - len(mailable)
+        msg = f"Queued {len(mailable)} exposed broker(s) with a direct email for {p.display()}."
+        if skipped:
+            msg += (f"\n\n{skipped} more are web-form only (no direct email) — Send Bot can't "
+                   "handle those; use Prepare request on the Requests tab for them instead.")
+        messagebox.showinfo(__app_name__, msg)
         self.refresh()
 
     def _process_now(self):
