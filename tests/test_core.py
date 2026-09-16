@@ -13,7 +13,7 @@ os.environ["DBOPT_HOME"] = _TMP
 from dbopt import brokers, storage                     # noqa: E402
 from dbopt.engine import RequestStore, prepare_request, progress_for_profile  # noqa: E402
 from dbopt.models import Address, MAX_PROFILES, Profile, ProfileStore, Settings  # noqa: E402
-from dbopt import sendbot, templates, updater           # noqa: E402
+from dbopt import scanner, sendbot, templates, updater  # noqa: E402
 
 failures = []
 
@@ -168,6 +168,49 @@ check("skipped item never consumed a retry attempt",
           if it["broker_id"] == b_formonly["id"]) == 0)
 check("skipped item's status is terminal ('skipped'), not left queued",
       statuses2.get(b_formonly["id"]) == "skipped")
+
+# --- Scanner: confirmed-exposed brokers skip the live check; unconfirmed ones
+# only send on a real 'match', never on 'blocked' (the common real-world case).
+b_truthfinder = brokers.get("truthfinder")
+b_checkpeople = brokers.get("checkpeople")
+check("fixture brokers aren't pre-flagged exposed", not b_truthfinder.get("exposed") and not b_checkpeople.get("exposed"))
+
+
+def _check_called(*_a, **_kw):
+    raise AssertionError("check_fn must not be called for an already-exposed broker")
+
+
+brokers.upsert({**b_truthfinder, "exposed": True, "exposed_note": "test fixture"})
+res = scanner.run_scan(person2.id, [b_truthfinder["id"]], max_sends=5,
+                       send_fn=lambda *a, **k: (True, "ok"), check_fn=_check_called)
+check("already-exposed broker sends without ever calling the live checker",
+      res["sent"] == 1 and res["checked"] == 1)
+
+res = scanner.run_scan(person2.id, [b_checkpeople["id"]], max_sends=5,
+                       send_fn=lambda *a, **k: (True, "ok"),
+                       check_fn=lambda *a, **k: {"verdict": "blocked", "http_status": 403, "detail": "captcha"})
+check("a 'blocked' live-check result never sends", res["sent"] == 0 and res["blocked"] == 1)
+check("broker.get('exposed') stays false after a blocked check", not brokers.get(b_checkpeople["id"]).get("exposed"))
+
+res = scanner.run_scan(person2.id, [b_checkpeople["id"]], max_sends=5,
+                       send_fn=lambda *a, **k: (True, "ok"),
+                       check_fn=lambda *a, **k: {"verdict": "match", "http_status": 200, "detail": "found the name"})
+check("a real 'match' live-check result does send", res["sent"] == 1)
+check("a live match gets remembered as exposed for next time",
+      bool(brokers.get(b_checkpeople["id"]).get("exposed")))
+
+res = scanner.run_scan(person2.id, [b_truthfinder["id"], b_checkpeople["id"]], max_sends=1,
+                       send_fn=lambda *a, **k: (True, "ok"), check_fn=_check_called)
+check("max_sends caps how many go out even when both are confirmed exposed", res["sent"] == 1)
+
+from dbopt.models import Settings as _S  # noqa: E402
+s3 = _S()
+s3.update(scan_schedule_mode="off")
+check("scanner is_due() false when schedule is off", not scanner.is_scan_due(s3))
+s3.update(scan_schedule_mode="daily", scan_daily_time="00:00", scan_last_run=None)
+check("scanner is_due() true for daily mode, never run", scanner.is_scan_due(s3))
+s3.update(scan_schedule_mode="weekly", scan_weekday=(datetime.now().weekday() + 1) % 7, scan_last_run=None)
+check("scanner is_due() false for weekly mode on the wrong weekday", not scanner.is_scan_due(s3))
 
 print()
 if failures:

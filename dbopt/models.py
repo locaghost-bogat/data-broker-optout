@@ -53,6 +53,16 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "send_daily_time": "10:00",
     "send_batch_size": 1,
     "send_last_run": None,
+
+    # Scanner: best-effort site check + immediate send on a schedule, for a
+    # chosen person and a chosen set of brokers (empty list = "all exposed").
+    "scan_schedule_mode": "off",     # "off" | "daily" | "weekly"
+    "scan_daily_time": "09:00",
+    "scan_weekday": 0,               # 0=Monday .. 6=Sunday, used when "weekly"
+    "scan_max_sends_per_run": 5,
+    "scan_person_id": "",
+    "scan_broker_ids": [],           # empty -> all brokers flagged exposed
+    "scan_last_run": None,
 }
 
 

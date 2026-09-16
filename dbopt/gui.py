@@ -3,7 +3,7 @@
 Tkinter ships with the python.org macOS installers back to OS X 10.9, so this
 runs on "macOS 10 and up" with no third-party packages.
 
-Tabs: People (up to 5) · Brokers · Requests · Updates · About
+Tabs: People (up to 5) · Brokers · Requests · Updates · Send Bot · Scanner · Settings · About
 """
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from . import __app_name__, __version__, brokers, sendbot, theme
+from . import __app_name__, __version__, brokers, scanner, sendbot, theme
 from .engine import (DONE_STATUSES, STATUS_LABEL, STATUSES, RequestStore,
                      mailto_link, open_path, open_url, prepare_request,
                      progress_for_profile)
@@ -1072,6 +1072,300 @@ class SendBotTab(ttk.Frame):
         self.log_detail.config(state="disabled")
 
 
+# --------------------------------------------------------------------------- Scanner tab
+WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+SCAN_WARNING = (
+    "Brokers already flagged \"has your info\" (pink, from a real scan) send immediately, "
+    "no re-check needed. For everyone else this does one best-effort site request — most "
+    "people-search sites block that with a CAPTCHA, so expect 'blocked' more often than a "
+    "real match. It only sends on a genuine match, never on 'blocked'."
+)
+
+
+class BrokerPickerDialog(tk.Toplevel):
+    def __init__(self, master, selected_ids: set[str], on_ok):
+        super().__init__(master)
+        self.title("Choose brokers to scan")
+        self.on_ok = on_ok
+        self.geometry("520x520")
+
+        ttk.Label(self, text="Filter:").pack(anchor="w", padx=PAD, pady=(PAD, 0))
+        self.filter_var = tk.StringVar()
+        e = ttk.Entry(self, textvariable=self.filter_var)
+        e.pack(fill="x", padx=PAD)
+        self.filter_var.trace_add("write", lambda *_: self._reload())
+
+        self.listbox = tk.Listbox(self, selectmode="extended", exportselection=False)
+        self.listbox.pack(fill="both", expand=True, padx=PAD, pady=PAD)
+
+        self._all = brokers.list_brokers()
+        self._selected_ids = set(selected_ids)
+        self._shown: list[dict] = []
+        self._reload()
+
+        bar = ttk.Frame(self)
+        bar.pack(fill="x", padx=PAD, pady=(0, PAD))
+        ttk.Button(bar, text="Cancel", command=self.destroy).pack(side="right")
+        ttk.Button(bar, text="Use selection", command=self._save,
+                  style="Accent.TButton").pack(side="right", padx=6)
+        theme.polish(self)
+
+    def _reload(self):
+        needle = self.filter_var.get().strip().lower()
+        self.listbox.delete(0, "end")
+        self._shown = [b for b in self._all if needle in b["name"].lower()] if needle else self._all
+        for b in self._shown:
+            mark = "* " if b.get("exposed") else "  "
+            self.listbox.insert("end", f"{mark}{b['name']}")
+            if b["id"] in self._selected_ids:
+                self.listbox.selection_set("end")
+
+    def _save(self):
+        for i in self.listbox.curselection():
+            self._selected_ids.add(self._shown[i]["id"])
+        # Also drop any that were shown-but-deselected in this filtered view.
+        shown_ids = {b["id"] for b in self._shown}
+        picked_now = {self._shown[i]["id"] for i in self.listbox.curselection()}
+        self._selected_ids = (self._selected_ids - (shown_ids - picked_now)) | picked_now
+        self.on_ok(self._selected_ids)
+        self.destroy()
+
+
+class ScannerTab(ttk.Frame):
+    def __init__(self, master, app):
+        super().__init__(master, padding=PAD)
+        self.app = app
+        self._chosen_broker_ids: set[str] = set()
+
+        top = ttk.LabelFrame(self, text="What to scan", padding=PAD)
+        top.pack(fill="x")
+
+        ttk.Label(top, text="Person:").grid(row=0, column=0, sticky="w")
+        self.person_var = tk.StringVar()
+        self.person_cb = ttk.Combobox(top, textvariable=self.person_var, state="readonly", width=24)
+        self.person_cb.grid(row=0, column=1, sticky="w", padx=(4, 16))
+
+        self.mode_var = tk.StringVar(value="exposed")
+        ttk.Radiobutton(top, text="All brokers flagged \"has your info\"", value="exposed",
+                        variable=self.mode_var, command=self._sync_broker_mode).grid(
+            row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
+        ttk.Radiobutton(top, text="Choose specific brokers", value="chosen",
+                        variable=self.mode_var, command=self._sync_broker_mode).grid(
+            row=2, column=0, sticky="w")
+        self.choose_btn = ttk.Button(top, text="Choose brokers...", command=self._open_picker, state="disabled")
+        self.choose_btn.grid(row=2, column=1, sticky="w")
+        self.chosen_lbl = ttk.Label(top, text="", style="Muted.TLabel")
+        self.chosen_lbl.grid(row=3, column=0, columnspan=2, sticky="w")
+
+        ttk.Label(top, text=SCAN_WARNING, style="Muted.TLabel", wraplength=780,
+                 justify="left").grid(row=4, column=0, columnspan=2, sticky="w", pady=(8, 0))
+
+        ttk.Button(top, text="Scan now", command=self._scan_now,
+                  style="Accent.TButton").grid(row=5, column=0, sticky="w", pady=(10, 0))
+
+        # --- schedule ---------------------------------------------------
+        sched = ttk.LabelFrame(self, text="Schedule", padding=PAD)
+        sched.pack(fill="x", pady=(10, 0))
+
+        ttk.Label(sched, text="Cadence:").grid(row=0, column=0, sticky="w")
+        self.sched_mode = tk.StringVar()
+        cb = ttk.Combobox(sched, textvariable=self.sched_mode, values=["off", "daily", "weekly"],
+                          state="readonly", width=10)
+        cb.grid(row=0, column=1, sticky="w")
+        cb.bind("<<ComboboxSelected>>", lambda _e: self._sync_weekday_state())
+
+        ttk.Label(sched, text="Day (if weekly):").grid(row=0, column=2, sticky="w", padx=(16, 4))
+        self.weekday = tk.StringVar()
+        self.weekday_cb = ttk.Combobox(sched, textvariable=self.weekday, values=WEEKDAY_NAMES,
+                                       state="readonly", width=11)
+        self.weekday_cb.grid(row=0, column=3, sticky="w")
+
+        ttk.Label(sched, text="Time (HH:MM):").grid(row=1, column=0, sticky="w", pady=(6, 0))
+        self.sched_time = tk.StringVar()
+        ttk.Entry(sched, textvariable=self.sched_time, width=8).grid(row=1, column=1, sticky="w", pady=(6, 0))
+
+        ttk.Label(sched, text="Max emails per run:").grid(row=1, column=2, sticky="w", padx=(16, 4), pady=(6, 0))
+        self.max_sends = tk.IntVar()
+        ttk.Spinbox(sched, from_=1, to=50, textvariable=self.max_sends, width=6).grid(
+            row=1, column=3, sticky="w", pady=(6, 0))
+
+        btns = ttk.Frame(sched)
+        btns.grid(row=2, column=0, columnspan=4, sticky="w", pady=(10, 0))
+        ttk.Button(btns, text="Save schedule", command=self._save_schedule,
+                  style="Accent.TButton").pack(side="left")
+        ttk.Button(btns, text="Install background scanner (launchd)",
+                  command=self._install_scheduler).pack(side="left", padx=6)
+        ttk.Button(btns, text="Remove background scanner",
+                  command=self._uninstall_scheduler).pack(side="left")
+
+        self.status_lbl = ttk.Label(sched, text="", style="Muted.TLabel")
+        self.status_lbl.grid(row=3, column=0, columnspan=4, sticky="w", pady=(8, 0))
+
+        # --- scan log ---------------------------------------------------
+        lf = ttk.LabelFrame(self, text="Scan log", padding=PAD)
+        lf.pack(fill="both", expand=True, pady=(10, 0))
+
+        lcols = ("time", "broker", "check", "sent", "detail")
+        self.ltree = ttk.Treeview(lf, columns=lcols, show="headings", height=8)
+        for c, w in zip(lcols, (140, 190, 90, 70, 300)):
+            self.ltree.heading(c, text=c.title())
+            self.ltree.column(c, width=w, anchor="w")
+        self.ltree.pack(fill="both", expand=True, pady=(0, 6))
+        self.ltree.bind("<<TreeviewSelect>>", self._on_log_select)
+
+        self.log_detail = tk.Text(lf, height=7, wrap="word")
+        self.log_detail.pack(fill="both", expand=True)
+        self.log_detail.config(state="disabled")
+
+        self._load_settings()
+        self.refresh()
+
+    # -- settings ---------------------------------------------------
+    def _load_settings(self):
+        s = Settings()
+        self.sched_mode.set(s["scan_schedule_mode"])
+        self.weekday.set(WEEKDAY_NAMES[int(s["scan_weekday"] or 0)])
+        self.sched_time.set(s["scan_daily_time"])
+        self.max_sends.set(int(s["scan_max_sends_per_run"]))
+        self._chosen_broker_ids = set(s.get("scan_broker_ids") or [])
+        self.mode_var.set("chosen" if self._chosen_broker_ids else "exposed")
+        self._sync_broker_mode()
+        self._sync_weekday_state()
+        self._update_chosen_label()
+
+    def _sync_broker_mode(self):
+        self.choose_btn.config(state="normal" if self.mode_var.get() == "chosen" else "disabled")
+
+    def _sync_weekday_state(self):
+        self.weekday_cb.config(state="readonly" if self.sched_mode.get() == "weekly" else "disabled")
+
+    def _update_chosen_label(self):
+        if self.mode_var.get() == "chosen":
+            self.chosen_lbl.config(text=f"{len(self._chosen_broker_ids)} broker(s) selected.")
+        else:
+            n = sum(1 for b in brokers.list_brokers() if b.get("exposed"))
+            self.chosen_lbl.config(text=f"({n} brokers currently flagged.)")
+
+    def _open_picker(self):
+        BrokerPickerDialog(self, self._chosen_broker_ids, self._on_picked)
+
+    def _on_picked(self, ids: set[str]):
+        self._chosen_broker_ids = ids
+        self._update_chosen_label()
+
+    def _current_broker_ids(self) -> list[str]:
+        if self.mode_var.get() == "chosen":
+            return sorted(self._chosen_broker_ids)
+        return [b["id"] for b in brokers.list_brokers() if b.get("exposed")]
+
+    def _save_schedule(self):
+        Settings().update(
+            scan_schedule_mode=self.sched_mode.get(),
+            scan_weekday=WEEKDAY_NAMES.index(self.weekday.get()) if self.weekday.get() in WEEKDAY_NAMES else 0,
+            scan_daily_time=self.sched_time.get().strip() or "09:00",
+            scan_max_sends_per_run=int(self.max_sends.get()),
+            scan_person_id=self._selected_person_id() or "",
+            scan_broker_ids=sorted(self._chosen_broker_ids) if self.mode_var.get() == "chosen" else [],
+        )
+        self._refresh_status()
+        messagebox.showinfo(__app_name__, "Saved.")
+
+    def _selected_person_id(self):
+        idx = self.person_cb.current()
+        profs = self.app.pstore.profiles
+        return profs[idx].id if 0 <= idx < len(profs) else None
+
+    def _refresh_status(self):
+        s = Settings()
+        due = "yes" if scanner.is_scan_due(s) else "no"
+        self.status_lbl.config(text=(
+            f"Last run: {s['scan_last_run'] or 'never'}   Due now: {due}   "
+            f"Background scanner installed: {'yes' if self._scheduler_installed() else 'no'}"))
+
+    @staticmethod
+    def _scheduler_installed() -> bool:
+        from pathlib import Path
+        from .cli import SCAN_LAUNCH_LABEL
+        return (Path.home() / "Library" / "LaunchAgents" / f"{SCAN_LAUNCH_LABEL}.plist").exists()
+
+    def _install_scheduler(self):
+        from .cli import cmd_install_scan_scheduler
+        import argparse
+        try:
+            cmd_install_scan_scheduler(argparse.Namespace(poll_seconds=300))
+            messagebox.showinfo(__app_name__,
+                                "Background scanner installed (checks every 5 min, actually "
+                                "scans per your saved schedule).")
+        except Exception as e:  # noqa
+            messagebox.showerror(__app_name__, f"Install failed: {e}")
+        self._refresh_status()
+
+    def _uninstall_scheduler(self):
+        from .cli import cmd_uninstall_scan_scheduler
+        import argparse
+        cmd_uninstall_scan_scheduler(argparse.Namespace())
+        messagebox.showinfo(__app_name__, "Background scanner removed.")
+        self._refresh_status()
+
+    # -- run now ---------------------------------------------------
+    def _scan_now(self):
+        pid = self._selected_person_id()
+        if not pid:
+            messagebox.showinfo(__app_name__, "Add a person on the People tab first.")
+            return
+        ids = self._current_broker_ids()
+        if not ids:
+            messagebox.showinfo(__app_name__, "No brokers to scan — flag some as exposed, or choose some.")
+            return
+        already = sum(1 for i in ids if (brokers.get(i) or {}).get("exposed"))
+        person = self.app.pstore.get(pid)
+        if not messagebox.askyesno(
+                __app_name__,
+                f"Scan {len(ids)} broker(s) for {person.display() if person else '?'}.\n\n"
+                f"{already} are already confirmed exposed and will be emailed immediately.\n"
+                f"{len(ids) - already} will get a best-effort live check first (likely 'blocked' "
+                "on most sites) and only get emailed on a real match.\n\n"
+                "Continue?"):
+            return
+        res = scanner.run_scan(pid, ids, max_sends=int(Settings()["scan_max_sends_per_run"]))
+        self.refresh()
+        messagebox.showinfo(__app_name__, f"[scan] {res['detail']}")
+
+    # -- log ---------------------------------------------------
+    def refresh(self):
+        self._refresh_status()
+        pstore = self.app.pstore
+        self.person_cb["values"] = [p.display() for p in pstore.profiles]
+        if pstore.profiles and self.person_cb.current() < 0:
+            self.person_cb.current(0)
+        self._update_chosen_label()
+
+        self.ltree.delete(*self.ltree.get_children())
+        theme.status_tags(self.ltree)
+        self._log_cache = [e for e in sendbot.read_log(300) if e.get("source") == "scan"]
+        for i, e in enumerate(self._log_cache):
+            tag = "removed" if e["status"] == "sent" else ("idle" if e["status"] == "skipped" else "rejected")
+            sent_col = "yes" if e["status"] == "sent" else "no"
+            self.ltree.insert("", "end", iid=str(i), tags=(tag,), values=(
+                e["ts"][:16].replace("T", " "), e.get("broker_name", ""),
+                e.get("scan_verdict", ""), sent_col, e.get("scan_detail", e.get("error", ""))[:80]))
+
+    def _on_log_select(self, _=None):
+        sel = self.ltree.selection()
+        if not sel:
+            return
+        e = self._log_cache[int(sel[0])]
+        text = (f"Broker: {e.get('broker_name','')}\nCheck result: {e.get('scan_verdict','')}\n"
+               f"Detail: {e.get('scan_detail','')}\nSent: {'yes' if e['status']=='sent' else 'no'}")
+        if e.get("subject"):
+            text += f"\n\nSubject: {e['subject']}\n\n{e.get('body','')}"
+        self.log_detail.config(state="normal")
+        self.log_detail.delete("1.0", "end")
+        self.log_detail.insert("1.0", text)
+        self.log_detail.config(state="disabled")
+
+
 # --------------------------------------------------------------------------- App
 class App(tk.Tk):
     def __init__(self):
@@ -1099,11 +1393,13 @@ class App(tk.Tk):
         self.updates_tab = UpdatesTab(nb, self)
         self.settings_tab = SettingsTab(nb, self)
         self.sendbot_tab = SendBotTab(nb, self)
+        self.scanner_tab = ScannerTab(nb, self)
         nb.add(self.people_tab, text="People")
         nb.add(self.brokers_tab, text="Brokers")
         nb.add(self.requests_tab, text="Requests")
         nb.add(self.updates_tab, text="Updates")
         nb.add(self.sendbot_tab, text="Send Bot")
+        nb.add(self.scanner_tab, text="Scanner")
         nb.add(self.settings_tab, text="Settings")
         nb.add(AboutTab(nb, self), text="About")
 
@@ -1115,6 +1411,8 @@ class App(tk.Tk):
             self.requests_tab.refresh_people()
         if hasattr(self, "sendbot_tab"):
             self.sendbot_tab.refresh()
+        if hasattr(self, "scanner_tab"):
+            self.scanner_tab.refresh()
 
     def refresh_broker_dependents(self):
         if hasattr(self, "requests_tab"):
@@ -1125,6 +1423,8 @@ class App(tk.Tk):
     def refresh_sendbot_dependents(self):
         if hasattr(self, "sendbot_tab"):
             self.sendbot_tab.refresh()
+        if hasattr(self, "scanner_tab"):
+            self.scanner_tab.refresh()
 
     def _followup_banner(self):
         due = self.rstore.due_followups()

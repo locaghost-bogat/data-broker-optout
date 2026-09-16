@@ -23,6 +23,7 @@ brokers). Works with **up to 5 people**.
 | Open the broker's opt-out page and an **email draft** for you to review and send | Upload anything anywhere |
 | Track status of every request and flag follow-ups | |
 | Optionally **send** queued requests through Mail.app on a schedule (Send Bot tab — off by default) | |
+| Optionally **check a broker's site** for the person's data and send only on a confirmed match (Scanner tab) | Reliably scan sites with CAPTCHA/bot-protection — most block a plain request |
 | Update the broker list on demand and once a month | |
 
 The default is still "prepare, you send" — click **Prepare request** and review
@@ -157,6 +158,49 @@ CLI equivalents: `queue-list`, `process-queue [--force]`, `send-log`,
 
 ---
 
+## Scanner (check a site, then send on a real match)
+
+The **Scanner** tab checks whether a broker actually has the person's data,
+and only sends when that's confirmed — either already-known, or just detected.
+
+**Two sources decide "confirmed":**
+1. **Already flagged exposed** (pink, from a real scan you applied — see
+   [tools/apply_exposure_scan.py](tools/apply_exposure_scan.py)) — trusted
+   outright, sent immediately, no re-check.
+2. **A live, best-effort check** of the broker's own site for everything else:
+   one HTTP request, looking for the person's name in the response.
+
+**Be clear-eyed about what that live check can actually do.** Most
+people-search sites run CAPTCHA / Cloudflare bot-protection that blocks a
+plain request outright — verified while building this: TruePeopleSearch,
+FastPeopleSearch, ThatsThem and USPhoneBook all returned 403/CAPTCHA on the
+very first try. So expect **"blocked" far more often than a real match** for
+anything not already confirmed exposed. That's logged honestly as "blocked" —
+**nothing is ever sent on a blocked or inconclusive result**, only on a
+genuine match. A live match is remembered (flagged exposed) so it doesn't need
+re-checking next time.
+
+**Choose what to scan:**
+- **All brokers flagged "has your info"** (default) — the reliable path, or
+- **Choose specific brokers** — opens a picker (search + multi-select) over
+  the whole catalogue.
+
+**Run it:**
+- **Scan now** — shows how many will send immediately (already confirmed) vs.
+  get a live check first, asks you to confirm, then runs.
+- Or set a **cadence** (daily at a time, or weekly on a chosen day + time) and
+  a per-run send cap, **Save schedule**, then **Install background scanner
+  (launchd)** — same Mail.app + Automation-permission model as Send Bot.
+
+**Scan log** (its own table on the tab, sharing the same underlying log as
+Send Bot): Time / Broker / Check result / Sent / detail — click a row to see
+the full match detail and, if it sent, the exact email.
+
+CLI equivalents: `run-scan --person NAME [--broker ID ...] [--max-sends N]`,
+`install-scan-scheduler [--poll-seconds N]`, `uninstall-scan-scheduler`.
+
+---
+
 ## Broker-list updates
 
 ### Manual
@@ -276,6 +320,10 @@ python3 -m dbopt.cli process-queue [--force]
 python3 -m dbopt.cli send-log [--limit 200]
 python3 -m dbopt.cli install-send-scheduler [--poll-seconds 300]
 python3 -m dbopt.cli uninstall-send-scheduler
+
+python3 -m dbopt.cli run-scan --person NAME [--broker ID ...] [--max-sends 5]
+python3 -m dbopt.cli install-scan-scheduler [--poll-seconds 300]
+python3 -m dbopt.cli uninstall-scan-scheduler
 ```
 
 `generate` only writes drafts to `outbox/`. It never sends. `queue-add` /
@@ -290,13 +338,14 @@ or turned on scheduled sending.
 ```
 data-broker-optout/
 ├── dbopt/
-│   ├── gui.py          Tkinter app (People / Brokers / Requests / Updates / Send Bot / Settings / About)
+│   ├── gui.py          Tkinter app (People / Brokers / Requests / Updates / Send Bot / Scanner / Settings / About)
 │   ├── cli.py          command line + launchd install/uninstall (updates + Send Bot)
 │   ├── models.py       Profile (max 5), Address, Settings
 │   ├── brokers.py      catalogue load / save / validate / merge
 │   ├── templates.py    CCPA / GDPR / US-state request text builders
 │   ├── engine.py       request lifecycle, .eml drafting, status tracking
 │   ├── sendbot.py       queued sending: cadence, retries, send log
+│   ├── scanner.py       best-effort site check + send-on-match, cadence
 │   ├── mailsend.py      actually sends one message via Mail.app (AppleScript)
 │   ├── updater.py      manual + monthly update logic
 │   └── storage.py      ~/Library/Application Support paths, atomic JSON

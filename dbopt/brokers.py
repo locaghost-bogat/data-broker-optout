@@ -71,6 +71,18 @@ def remove(broker_id: str) -> None:
     save(data)
 
 
+def mark_exposed(broker_id: str, note: str) -> None:
+    """Remember a live scan match so this broker shows pink/on-top from now on,
+    same as one confirmed via tools/apply_exposure_scan.py."""
+    data = load()
+    for b in data.get("brokers", []):
+        if b.get("id") == broker_id:
+            b["exposed"] = True
+            b["exposed_note"] = note
+            break
+    save(data)
+
+
 def validate_incoming(data: Any) -> list[dict[str, Any]]:
     """Raise ValueError unless *data* looks like a broker list; return the brokers."""
     if not isinstance(data, dict) or not isinstance(data.get("brokers"), list):

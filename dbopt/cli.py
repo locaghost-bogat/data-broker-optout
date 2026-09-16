@@ -17,23 +17,29 @@ Used by the monthly launchd job (`update`) and for headless / scripted work.
     python3 -m dbopt.cli send-log
     python3 -m dbopt.cli install-send-scheduler   # install launchd Send Bot poller
     python3 -m dbopt.cli uninstall-send-scheduler
+
+    python3 -m dbopt.cli run-scan --person "Jane" [--broker spokeo ...] [--max-sends 5]
+    python3 -m dbopt.cli install-scan-scheduler [--poll-seconds 300]
+    python3 -m dbopt.cli uninstall-scan-scheduler
 """
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import os
 import plistlib
 import subprocess
 import sys
 from pathlib import Path
 
-from . import __bundle_id__, brokers, sendbot, storage
+from . import __bundle_id__, brokers, scanner, sendbot, storage
 from .engine import RequestStore, STATUS_LABEL, draft_eml, progress_for_profile
 from .models import ProfileStore, Settings
 from .updater import read_log, run_update
 
 LAUNCH_LABEL = f"{__bundle_id__}.monthlyupdate"
 SEND_LAUNCH_LABEL = f"{__bundle_id__}.sendbot"
+SCAN_LAUNCH_LABEL = f"{__bundle_id__}.scanner"
 
 
 def _find_person(pstore: ProfileStore, needle: str):
@@ -290,6 +296,90 @@ def cmd_uninstall_send_scheduler(args) -> int:
     return 0
 
 
+# ----------------------------------------------------------------------- Scanner
+def cmd_run_scan(args) -> int:
+    pstore = ProfileStore()
+    person = _find_person(pstore, args.person)
+    if not person:
+        print(f"No person matching {args.person!r}.")
+        return 1
+    if args.broker:
+        ids = args.broker
+    else:
+        ids = [b["id"] for b in brokers.list_brokers() if b.get("exposed")]
+        if not ids:
+            print("No brokers flagged 'exposed' and none given with --broker; nothing to scan.")
+            return 0
+    res = scanner.run_scan(person.id, ids, max_sends=args.max_sends)
+    print(f"[scan] {res['detail']}")
+    return 0
+
+
+def cmd_process_scan(args) -> int:
+    settings = Settings()
+    if not args.force:
+        if settings["scan_schedule_mode"] == "off":
+            print("[off] scan schedule is off")
+            return 0
+        if not scanner.is_scan_due(settings):
+            print("[not-due] not due yet per the schedule")
+            return 0
+    person_id = settings["scan_person_id"]
+    if not person_id:
+        print("[error] no person configured for scheduled scans (set it on the Scanner tab)")
+        return 1
+    broker_ids = settings.get("scan_broker_ids") or [b["id"] for b in brokers.list_brokers() if b.get("exposed")]
+    res = scanner.run_scan(person_id, broker_ids, max_sends=int(settings["scan_max_sends_per_run"]))
+    settings.update(scan_last_run=datetime.now().isoformat(timespec="seconds"))
+    print(f"[ok] {res['detail']}")
+    return 0
+
+
+def cmd_install_scan_scheduler(args) -> int:
+    repo_root = Path(__file__).resolve().parent.parent
+    plist = {
+        "Label": SCAN_LAUNCH_LABEL,
+        "ProgramArguments": [_python_for_launchd(), "-m", "dbopt.cli", "process-scan"],
+        "WorkingDirectory": str(repo_root),
+        "EnvironmentVariables": {
+            "PYTHONPATH": str(repo_root),
+            "PATH": "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin",
+            **({"DBOPT_HOME": os.environ["DBOPT_HOME"]} if os.environ.get("DBOPT_HOME") else {}),
+        },
+        "StartInterval": max(60, args.poll_seconds),
+        "RunAtLoad": False,
+        "StandardOutPath": str(storage.path("logs") / "scanner.out.log"),
+        "StandardErrorPath": str(storage.path("logs") / "scanner.err.log"),
+    }
+    agents = Path.home() / "Library" / "LaunchAgents"
+    agents.mkdir(parents=True, exist_ok=True)
+    target = agents / f"{SCAN_LAUNCH_LABEL}.plist"
+    with target.open("wb") as fh:
+        plistlib.dump(plist, fh)
+
+    subprocess.run(["launchctl", "unload", str(target)], check=False, capture_output=True)
+    r = subprocess.run(["launchctl", "load", str(target)], check=False, capture_output=True, text=True)
+    print(f"Installed Scanner scheduler: {target}")
+    print(f"  polls every {args.poll_seconds}s; actual scan cadence + person + brokers are "
+          "set on the Scanner tab.")
+    if r.returncode != 0:
+        print(f"  launchctl load said: {r.stderr.strip() or r.stdout.strip()}")
+    else:
+        print("  launchctl load: ok")
+    return 0
+
+
+def cmd_uninstall_scan_scheduler(args) -> int:
+    target = Path.home() / "Library" / "LaunchAgents" / f"{SCAN_LAUNCH_LABEL}.plist"
+    if target.exists():
+        subprocess.run(["launchctl", "unload", str(target)], check=False, capture_output=True)
+        target.unlink()
+        print(f"Removed {target}")
+    else:
+        print("No Scanner scheduler installed.")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="dbopt", description="Data Broker Opt-Out — CLI")
@@ -343,6 +433,23 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("uninstall-send-scheduler", help="remove the launchd Send Bot poller").set_defaults(
         func=cmd_uninstall_send_scheduler)
+
+    rs = sub.add_parser("run-scan", help="check + immediately send for a person's brokers")
+    rs.add_argument("--person", required=True, help="label, full name, or id")
+    rs.add_argument("--broker", nargs="*", help="broker id(s) to scan (default: all flagged exposed)")
+    rs.add_argument("--max-sends", type=int, default=5, help="cap emails sent this run (default 5)")
+    rs.set_defaults(func=cmd_run_scan)
+
+    ps = sub.add_parser("process-scan", help="run the scheduled scan if it's due")
+    ps.add_argument("--force", action="store_true", help="ignore the schedule and scan now")
+    ps.set_defaults(func=cmd_process_scan)
+
+    iscn = sub.add_parser("install-scan-scheduler", help="install the launchd Scanner poller")
+    iscn.add_argument("--poll-seconds", type=int, default=300)
+    iscn.set_defaults(func=cmd_install_scan_scheduler)
+
+    sub.add_parser("uninstall-scan-scheduler", help="remove the launchd Scanner poller").set_defaults(
+        func=cmd_uninstall_scan_scheduler)
 
     return p
 
