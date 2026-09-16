@@ -13,7 +13,7 @@ os.environ["DBOPT_HOME"] = _TMP
 from dbopt import brokers, storage                     # noqa: E402
 from dbopt.engine import RequestStore, prepare_request, progress_for_profile  # noqa: E402
 from dbopt.models import Address, MAX_PROFILES, Profile, ProfileStore, Settings  # noqa: E402
-from dbopt import templates, updater                   # noqa: E402
+from dbopt import sendbot, templates, updater           # noqa: E402
 
 failures = []
 
@@ -93,6 +93,60 @@ check("invalid update payload rejected", bad)
 s = Settings()
 s.update(last_update_applied=storage.now_iso(), update_interval_days=30)
 check("update not due right after applying", not updater.is_due(s))
+
+# --- Send Bot: queue, gating, retries, log (fake sender -- never touches Mail.app)
+from datetime import datetime, timedelta  # noqa: E402
+
+s.update(auto_send_enabled=False)
+check("process_queue refuses unattended run when disabled",
+      sendbot.process_queue(force=False)["status"] == "disabled")
+
+s.update(auto_send_enabled=True, send_schedule_mode="interval",
+        send_interval_minutes=30, send_last_run=None)
+check("is_due() true when never run", sendbot.is_due(s))
+s.update(send_last_run=datetime.now().isoformat(timespec="seconds"))
+check("is_due() false right after running", not sendbot.is_due(s))
+s.update(send_last_run=(datetime.now() - timedelta(minutes=31)).isoformat(timespec="seconds"))
+check("is_due() true once the interval has elapsed", sendbot.is_due(s))
+
+person2 = ProfileStore().profiles[1]
+b_spokeo = brokers.get("spokeo")
+b_acxiom = brokers.get("acxiom")
+q = sendbot.SendQueue()
+i1 = q.add(person2.id, b_spokeo["id"])
+q.add(person2.id, b_spokeo["id"])  # duplicate add must not create a 2nd row
+check("adding the same (person, broker) twice doesn't duplicate",
+      len(q.pending()) == 1 and q.pending()[0]["id"] == i1["id"])
+q.add(person2.id, b_acxiom["id"])
+check("queue now has 2 distinct pending items", len(q.pending()) == 2)
+
+
+def _fake_send(to, subject, body, frm):
+    return (True, "ok") if "spokeo" in (to or "").lower() else (False, "simulated failure")
+
+
+s.update(send_batch_size=5)
+r = sendbot.process_queue(force=True, send_fn=_fake_send)
+check("forced batch sends the good one and defers the bad one",
+      r["sent"] == 1 and r["deferred"] == 1)
+check("sent item's request record moved to submitted",
+      RequestStore().get(person2.id, b_spokeo["id"])["status"] == "submitted")
+for _ in range(2):
+    sendbot.process_queue(force=True, send_fn=_fake_send)
+q = sendbot.SendQueue()
+statuses = {it["broker_id"]: it["status"] for it in q.all()}
+check("after 3 failed attempts the item is marked failed (not retried forever)",
+      statuses.get(b_acxiom["id"]) == "failed")
+check("send log recorded both a success and a failure",
+      {"sent", "failed"} <= {e["status"] for e in sendbot.read_log()})
+check("send log entry carries the exact subject/body that was (attempted to be) sent",
+      any(e["broker_id"] == b_spokeo["id"] and "1798.105" in e["body"] for e in sendbot.read_log()))
+
+requeued = q.requeue(next(it["id"] for it in q.all() if it["status"] == "failed"))
+check("requeue resets attempts and status", requeued["status"] == "queued" and requeued["attempts"] == 0)
+removed = sendbot.SendQueue().clear_terminal()
+check("clear_terminal drops the sent item, keeps the requeued one",
+      removed == 1 and len(sendbot.SendQueue().pending()) == 1)
 
 print()
 if failures:

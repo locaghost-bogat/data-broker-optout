@@ -42,6 +42,17 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     #   "{local}.{broker}@duck.com"      (DuckDuckGo / custom relay)
     # Empty  ->  use reply_to_email, else the profile's own first email.
     "email_alias_pattern": "",
+
+    # Send Bot: queues (profile, broker) requests and actually sends them
+    # through Mail.app on a schedule/interval instead of leaving a draft.
+    # auto_send_enabled gates only the unattended/background (launchd) runs;
+    # the GUI's "Process queue now" always works (it's an explicit click).
+    "auto_send_enabled": False,
+    "send_schedule_mode": "interval",   # "interval" | "daily" | "off"
+    "send_interval_minutes": 60,
+    "send_daily_time": "10:00",
+    "send_batch_size": 1,
+    "send_last_run": None,
 }
 
 

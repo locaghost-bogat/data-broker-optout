@@ -17,16 +17,18 @@ brokers). Works with **up to 5 people**.
 
 | Does | Does not |
 |---|---|
-| Store up to 5 people's identity details locally | Send any email by itself |
-| Keep a catalogue of broker opt-out URLs, emails, phones, mailing addresses, and step-by-step instructions | Submit web forms or solve CAPTCHAs |
-| Generate a legally-grounded request (CCPA/CPRA, GDPR Art. 17/21, or a generic US-state request) per person per broker | Give legal advice |
-| Open the broker's opt-out page and an **email draft** for you to review and send | Guarantee a broker complies |
-| Track status of every request and flag follow-ups | Upload anything anywhere |
+| Store up to 5 people's identity details locally | Submit web forms or solve CAPTCHAs |
+| Keep a catalogue of broker opt-out URLs, emails, phones, mailing addresses, and step-by-step instructions | Give legal advice |
+| Generate a legally-grounded request (CCPA/CPRA, GDPR Art. 17/21, or a generic US-state request) per person per broker | Guarantee a broker complies |
+| Open the broker's opt-out page and an **email draft** for you to review and send | Upload anything anywhere |
+| Track status of every request and flag follow-ups | |
+| Optionally **send** queued requests through Mail.app on a schedule (Send Bot tab — off by default) | |
 | Update the broker list on demand and once a month | |
 
-The "prepare, you send" design is deliberate: unattended bulk submissions to
-hundreds of third parties get flagged as abuse and rejected. This tool gives you
-the statute, the wording, the contact, a paper trail, and the bookkeeping.
+The default is still "prepare, you send" — click **Prepare request** and review
+before anything goes out. The **Send Bot** (below) is a separate, opt-in path
+for people who've reviewed the wording once and want the rest sent on a
+schedule/interval instead of one at a time; it stays off until you turn it on.
 
 ---
 
@@ -43,6 +45,21 @@ Check Tk:
 ```bash
 python3 -m tkinter
 ```
+
+### Which distribution runs on which macOS
+
+The `dbopt` package itself (the code in this repo) has no syntax or API that
+needs anything newer than Python 3.7 / macOS 10.9 — everything modern-looking
+in the type hints is inert at runtime (`from __future__ import annotations`).
+The floor in practice comes from **how you run it**:
+
+| Distribution | Real floor | Why |
+|---|---|---|
+| Run from source / `scripts/make-app.sh` (thin bundle) | **~10.9–10.10** | Only needs *a* Python 3 + Tk on PATH — install an old python.org build (e.g. 3.8, itself supports 10.9+) on the old Mac |
+| `python3 setup.py py2app` (standalone bundle) | **whatever Python built it** | It embeds that exact Python + Tcl/Tk. Building with today's python.org 3.13 gives a floor of **macOS 10.13** — Apple's own 3.13 installer requires that. There is no way around this for a given Python version; to get a lower floor, build with an older Python instead. |
+
+If you need a `.app` for a Mac on 10.10–10.12, use the thin bundle with an
+appropriately old Python, not `setup.py py2app`.
 
 ---
 
@@ -94,6 +111,49 @@ open "dist/Data Broker Opt-Out.app"
    A progress bar shows "N of M sites confirmed removed" for that person.
 
 4. **Updates tab** — see below.
+
+5. **Send Bot tab** — see below.
+
+---
+
+## Send Bot (queued, scheduled sending)
+
+Everything above stays manual by default. The Send Bot is a separate, opt-in
+queue for people who don't want to click Prepare-request-and-Send one at a
+time for dozens of brokers.
+
+**How it sends:** through Apple **Mail.app**, via AppleScript — it composes a
+message (subject/body from the same per-broker template `Prepare request`
+uses) and sends it. The first time, **macOS will ask you to grant Automation
+access to Mail** (System Settings → Privacy & Security → Automation); that
+one-time OS prompt is intentional and cannot be skipped — it's the safety gate
+that stops anything from sending itself before you've explicitly allowed it.
+
+**Queue something:**
+- Requests tab → select a person + broker row → **Queue for Send Bot**, or
+- Send Bot tab → pick a person → **Queue all their exposed brokers**, or
+- `python3 -m dbopt.cli queue-add --person "Jane" [--broker spokeo] [--exposed-only]`
+
+**Send it:**
+- Click **Process queue now** — shows exactly what's about to be sent (person,
+  broker) and asks you to confirm, then sends that one batch. Works regardless
+  of the toggle below; this is the "I'm here, do it now" button.
+- Or turn on **Enable automatic sending** + set a cadence (a fixed interval in
+  minutes, or one daily time) + a batch size (emails per run), **Save
+  schedule**, then **Install background scheduler (launchd)**. From then on a
+  poller wakes every few minutes, and actually sends only when your cadence
+  says it's due — unattended, no per-message confirmation. Leave this off if
+  you'd rather always press Process-queue-now yourself.
+
+**What gets recorded:** every attempt — success or failure — goes into the
+**send log** (Time / Person / Broker / Status / To); selecting a row shows the
+exact subject and body that were sent. A failed send retries up to 3 times
+(each due cycle) before it's marked `failed`; **Requeue selected** resets it.
+A successful send moves that person/broker's status to **Submitted** on the
+Requests tab and schedules the usual follow-up.
+
+CLI equivalents: `queue-list`, `process-queue [--force]`, `send-log`,
+`install-send-scheduler [--poll-seconds N]`, `uninstall-send-scheduler`.
 
 ---
 
@@ -209,9 +269,19 @@ python3 -m dbopt.cli install-monthly [--day 1] [--hour 10] [--run-now]
 python3 -m dbopt.cli uninstall-monthly
 python3 -m dbopt.cli log
 python3 -m dbopt.cli gui
+
+python3 -m dbopt.cli queue-add --person NAME [--broker ID] [--exposed-only] [--law ...]
+python3 -m dbopt.cli queue-list
+python3 -m dbopt.cli process-queue [--force]
+python3 -m dbopt.cli send-log [--limit 200]
+python3 -m dbopt.cli install-send-scheduler [--poll-seconds 300]
+python3 -m dbopt.cli uninstall-send-scheduler
 ```
 
-`generate` only writes drafts to `outbox/`. It never sends.
+`generate` only writes drafts to `outbox/`. It never sends. `queue-add` /
+`process-queue` are the Send Bot (see above) — that path does send, through
+Mail.app, once you've queued something and either run `process-queue --force`
+or turned on scheduled sending.
 
 ---
 
@@ -220,12 +290,14 @@ python3 -m dbopt.cli gui
 ```
 data-broker-optout/
 ├── dbopt/
-│   ├── gui.py          Tkinter app (People / Brokers / Requests / Updates / About)
-│   ├── cli.py          command line + launchd install/uninstall
+│   ├── gui.py          Tkinter app (People / Brokers / Requests / Updates / Send Bot / Settings / About)
+│   ├── cli.py          command line + launchd install/uninstall (updates + Send Bot)
 │   ├── models.py       Profile (max 5), Address, Settings
 │   ├── brokers.py      catalogue load / save / validate / merge
 │   ├── templates.py    CCPA / GDPR / US-state request text builders
 │   ├── engine.py       request lifecycle, .eml drafting, status tracking
+│   ├── sendbot.py       queued sending: cadence, retries, send log
+│   ├── mailsend.py      actually sends one message via Mail.app (AppleScript)
 │   ├── updater.py      manual + monthly update logic
 │   └── storage.py      ~/Library/Application Support paths, atomic JSON
 ├── data/brokers.seed.json     bundled broker catalogue (authoritative source)
@@ -233,7 +305,8 @@ data-broker-optout/
 │   ├── build_broker_list.py   merge seed + community list -> brokers.json
 │   └── requirements.txt        PyYAML (build-time only)
 ├── .github/workflows/update-broker-list.yml   monthly rebuild + commit of brokers.json
-├── scripts/            make-app.sh, make-dmg.sh, install/uninstall-monthly-update.sh
+├── scripts/            make-app.sh, make-dmg.sh, install/uninstall-monthly-update.sh,
+│                       install/uninstall-send-scheduler.sh
 ├── setup.py            py2app standalone build
 ├── tests/test_core.py  stdlib self-test  (python3 tests/test_core.py)
 ├── run.py              GUI launcher

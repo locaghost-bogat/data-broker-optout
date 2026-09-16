@@ -10,6 +10,13 @@ Used by the monthly launchd job (`update`) and for headless / scripted work.
     python3 -m dbopt.cli install-monthly     # install launchd auto-update
     python3 -m dbopt.cli uninstall-monthly
     python3 -m dbopt.cli gui                 # launch the app window
+
+    python3 -m dbopt.cli queue-add --person "Jane" [--broker spokeo] [--exposed-only]
+    python3 -m dbopt.cli queue-list
+    python3 -m dbopt.cli process-queue [--force]
+    python3 -m dbopt.cli send-log
+    python3 -m dbopt.cli install-send-scheduler   # install launchd Send Bot poller
+    python3 -m dbopt.cli uninstall-send-scheduler
 """
 from __future__ import annotations
 
@@ -20,12 +27,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from . import __bundle_id__, brokers, storage
+from . import __bundle_id__, brokers, sendbot, storage
 from .engine import RequestStore, STATUS_LABEL, draft_eml, progress_for_profile
 from .models import ProfileStore, Settings
 from .updater import read_log, run_update
 
 LAUNCH_LABEL = f"{__bundle_id__}.monthlyupdate"
+SEND_LAUNCH_LABEL = f"{__bundle_id__}.sendbot"
 
 
 def _find_person(pstore: ProfileStore, needle: str):
@@ -175,6 +183,105 @@ def cmd_gui(args) -> int:
     return 0
 
 
+# --------------------------------------------------------------------- Send Bot
+def cmd_queue_add(args) -> int:
+    pstore = ProfileStore()
+    person = _find_person(pstore, args.person)
+    if not person:
+        print(f"No person matching {args.person!r}.")
+        return 1
+    targets = [brokers.get(args.broker)] if args.broker else brokers.list_brokers()
+    if args.broker and not targets[0]:
+        print(f"No broker with id {args.broker!r}")
+        return 1
+    if args.exposed_only:
+        targets = [b for b in targets if b.get("exposed")]
+    n = 0
+    for b in targets:
+        sendbot.add_to_queue(person.id, b["id"], args.law or "")
+        n += 1
+    print(f"queued {n} item(s) for {person.display()}")
+    return 0
+
+
+def cmd_queue_list(args) -> int:
+    q = sendbot.SendQueue()
+    pstore, items = ProfileStore(), q.all()
+    if not items:
+        print("(queue is empty)")
+        return 0
+    for it in items:
+        p = pstore.get(it["profile_id"])
+        b = brokers.get(it["broker_id"])
+        print(f"  {it['id']}  {it['status']:8}  {(p.display() if p else it['profile_id']):20}  "
+              f"{(b['name'] if b else it['broker_id']):28}  attempts={it['attempts']}  "
+              f"{it['last_error'][:60]}")
+    return 0
+
+
+def cmd_process_queue(args) -> int:
+    res = sendbot.process_queue(force=args.force)
+    print(f"[{res['status']}] {res['detail']}")
+    return 0
+
+
+def cmd_send_log(args) -> int:
+    for e in sendbot.read_log(args.limit):
+        print(f"  {e['ts']}  {e['status']:6}  {e.get('profile_name',''):20}  "
+              f"{e.get('broker_name',''):28}  to={e.get('to','')}  {e.get('error','')[:60]}")
+    return 0
+
+
+def cmd_install_send_scheduler(args) -> int:
+    repo_root = Path(__file__).resolve().parent.parent
+    plist = {
+        "Label": SEND_LAUNCH_LABEL,
+        "ProgramArguments": [_python_for_launchd(), "-m", "dbopt.cli", "process-queue"],
+        "WorkingDirectory": str(repo_root),
+        "EnvironmentVariables": {
+            "PYTHONPATH": str(repo_root),
+            "PATH": "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin",
+            **({"DBOPT_HOME": os.environ["DBOPT_HOME"]} if os.environ.get("DBOPT_HOME") else {}),
+        },
+        # A short poll tick; process-queue itself (without --force) still
+        # gates on Settings.auto_send_enabled + sendbot.is_due(), which is
+        # where the real interval/daily schedule and the master on/off switch
+        # live. This just makes sure that gate gets checked often enough.
+        "StartInterval": max(60, args.poll_seconds),
+        "RunAtLoad": False,
+        "StandardOutPath": str(storage.path("logs") / "sendbot.out.log"),
+        "StandardErrorPath": str(storage.path("logs") / "sendbot.err.log"),
+    }
+    agents = Path.home() / "Library" / "LaunchAgents"
+    agents.mkdir(parents=True, exist_ok=True)
+    target = agents / f"{SEND_LAUNCH_LABEL}.plist"
+    with target.open("wb") as fh:
+        plistlib.dump(plist, fh)
+
+    subprocess.run(["launchctl", "unload", str(target)], check=False, capture_output=True)
+    r = subprocess.run(["launchctl", "load", str(target)], check=False, capture_output=True, text=True)
+    print(f"Installed Send Bot scheduler: {target}")
+    print(f"  polls every {args.poll_seconds}s; actual send cadence is set on the Send Bot tab "
+          "(or send_schedule_mode / send_interval_minutes / send_daily_time in Settings).")
+    print("  NOTE: this only sends anything if 'Enable automatic sending' is ON in the app.")
+    if r.returncode != 0:
+        print(f"  launchctl load said: {r.stderr.strip() or r.stdout.strip()}")
+    else:
+        print("  launchctl load: ok")
+    return 0
+
+
+def cmd_uninstall_send_scheduler(args) -> int:
+    target = Path.home() / "Library" / "LaunchAgents" / f"{SEND_LAUNCH_LABEL}.plist"
+    if target.exists():
+        subprocess.run(["launchctl", "unload", str(target)], check=False, capture_output=True)
+        target.unlink()
+        print(f"Removed {target}")
+    else:
+        print("No Send Bot scheduler installed.")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="dbopt", description="Data Broker Opt-Out — CLI")
@@ -203,6 +310,32 @@ def build_parser() -> argparse.ArgumentParser:
     im.set_defaults(func=cmd_install_monthly)
 
     sub.add_parser("uninstall-monthly", help="remove the launchd monthly agent").set_defaults(func=cmd_uninstall_monthly)
+
+    qa = sub.add_parser("queue-add", help="add (person, broker) request(s) to the Send Bot queue")
+    qa.add_argument("--person", required=True, help="label, full name, or id")
+    qa.add_argument("--broker", help="a single broker id (default: all in catalogue)")
+    qa.add_argument("--exposed-only", action="store_true", help="only queue brokers flagged exposed")
+    qa.add_argument("--law", choices=["CCPA", "GDPR", "US-STATE-GENERIC"], help="force a legal basis")
+    qa.set_defaults(func=cmd_queue_add)
+
+    sub.add_parser("queue-list", help="list the Send Bot queue").set_defaults(func=cmd_queue_list)
+
+    pq = sub.add_parser("process-queue", help="send due queue items through Mail.app")
+    pq.add_argument("--force", action="store_true",
+                    help="ignore auto_send_enabled + the schedule and send the next batch now")
+    pq.set_defaults(func=cmd_process_queue)
+
+    sl = sub.add_parser("send-log", help="print the Send Bot's send log")
+    sl.add_argument("--limit", type=int, default=200)
+    sl.set_defaults(func=cmd_send_log)
+
+    iss = sub.add_parser("install-send-scheduler", help="install the launchd Send Bot poller")
+    iss.add_argument("--poll-seconds", type=int, default=300, help="how often launchd wakes the poller (default 300)")
+    iss.set_defaults(func=cmd_install_send_scheduler)
+
+    sub.add_parser("uninstall-send-scheduler", help="remove the launchd Send Bot poller").set_defaults(
+        func=cmd_uninstall_send_scheduler)
+
     return p
 
 

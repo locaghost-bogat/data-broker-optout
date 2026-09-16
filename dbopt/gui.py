@@ -11,7 +11,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from . import __app_name__, __version__, brokers, theme
+from . import __app_name__, __version__, brokers, sendbot, theme
 from .engine import (DONE_STATUSES, STATUS_LABEL, STATUSES, RequestStore,
                      mailto_link, open_path, open_url, prepare_request,
                      progress_for_profile)
@@ -412,6 +412,7 @@ class RequestsTab(ttk.Frame):
                    style="Accent.TButton").pack(side="left")
         ttk.Button(bar, text="Open last draft", command=self._open_draft).pack(side="left", padx=4)
         ttk.Button(bar, text="Copy email text", command=self._copy_text).pack(side="left")
+        ttk.Button(bar, text="Queue for Send Bot ▸", command=self._queue_for_bot).pack(side="left", padx=(12, 0))
         for label, status, sty in [("Mark submitted", "submitted", ""),
                                    ("Awaiting confirm", "awaiting_confirmation", ""),
                                    ("Mark removed", "confirmed_removed", "Success.TButton"),
@@ -547,6 +548,20 @@ class RequestsTab(ttk.Frame):
             b = brokers.get(bid)
             self.rstore.schedule_followup(p.id, bid, max(7, int(b.get("typical_completion_days") or 14)))
         self.refresh_rows()
+
+    def _queue_for_bot(self):
+        p, bid = self._current_profile(), self._current_broker_id()
+        if not (p and bid):
+            messagebox.showinfo(__app_name__, "Pick a person and a broker row first.")
+            return
+        b = brokers.get(bid)
+        sendbot.add_to_queue(p.id, bid, self.law_var.get())
+        messagebox.showinfo(
+            __app_name__,
+            f"Queued: {p.display()} -> {b['name']}.\n\n"
+            "Open the Send Bot tab to review the queue and either click "
+            "'Process queue now' or turn on scheduled sending.")
+        self.app.refresh_sendbot_dependents()
 
     def _add_note(self):
         p, bid = self._current_profile(), self._current_broker_id()
@@ -788,6 +803,260 @@ class SettingsTab(ttk.Frame):
         messagebox.showinfo(__app_name__, "Saved. New drafts will use these settings.")
 
 
+# --------------------------------------------------------------------------- Send Bot tab
+SEND_BOT_WARNING = (
+    "When ON, the scheduled bot SENDS these emails by itself (through Mail.app) — "
+    "no per-message confirmation. Off = nothing goes out until you click "
+    "'Process queue now' yourself."
+)
+
+
+class SendBotTab(ttk.Frame):
+    def __init__(self, master, app):
+        super().__init__(master, padding=PAD)
+        self.app = app
+
+        # --- schedule / master switch -----------------------------------
+        top = ttk.LabelFrame(self, text="Schedule", padding=PAD)
+        top.pack(fill="x")
+
+        self.enabled = tk.BooleanVar()
+        ck = ttk.Checkbutton(top, text="Enable automatic sending (unattended)",
+                             variable=self.enabled)
+        ck.grid(row=0, column=0, columnspan=4, sticky="w")
+        ttk.Label(top, text=SEND_BOT_WARNING, style="Warn.TLabel",
+                 wraplength=780, justify="left").grid(row=1, column=0, columnspan=4, sticky="w", pady=(0, 8))
+
+        ttk.Label(top, text="Cadence:").grid(row=2, column=0, sticky="w")
+        self.mode = tk.StringVar()
+        ttk.Combobox(top, textvariable=self.mode, values=["off", "interval", "daily"],
+                    state="readonly", width=10).grid(row=2, column=1, sticky="w")
+
+        ttk.Label(top, text="Every N minutes:").grid(row=2, column=2, sticky="w", padx=(16, 4))
+        self.interval = tk.IntVar()
+        ttk.Spinbox(top, from_=5, to=1440, textvariable=self.interval, width=6).grid(row=2, column=3, sticky="w")
+
+        ttk.Label(top, text="…or at daily time (HH:MM):").grid(row=3, column=0, sticky="w", columnspan=2)
+        self.daily_time = tk.StringVar()
+        ttk.Entry(top, textvariable=self.daily_time, width=8).grid(row=3, column=1, sticky="w")
+
+        ttk.Label(top, text="Emails per batch:").grid(row=3, column=2, sticky="w", padx=(16, 4))
+        self.batch = tk.IntVar()
+        ttk.Spinbox(top, from_=1, to=50, textvariable=self.batch, width=6).grid(row=3, column=3, sticky="w")
+
+        btns = ttk.Frame(top)
+        btns.grid(row=4, column=0, columnspan=4, sticky="w", pady=(10, 0))
+        ttk.Button(btns, text="Save schedule", command=self._save_settings,
+                  style="Accent.TButton").pack(side="left")
+        ttk.Button(btns, text="Install background scheduler (launchd)",
+                  command=self._install_scheduler).pack(side="left", padx=6)
+        ttk.Button(btns, text="Remove background scheduler",
+                  command=self._uninstall_scheduler).pack(side="left")
+
+        self.status_lbl = ttk.Label(top, text="", style="Muted.TLabel")
+        self.status_lbl.grid(row=5, column=0, columnspan=4, sticky="w", pady=(8, 0))
+
+        # --- queue ---------------------------------------------------
+        qf = ttk.LabelFrame(self, text="Queue", padding=PAD)
+        qf.pack(fill="both", expand=True, pady=(10, 0))
+
+        addrow = ttk.Frame(qf)
+        addrow.pack(fill="x")
+        ttk.Label(addrow, text="Quick-add:").pack(side="left")
+        self.person_var = tk.StringVar()
+        self.person_cb = ttk.Combobox(addrow, textvariable=self.person_var, state="readonly", width=24)
+        self.person_cb.pack(side="left", padx=(4, 8))
+        ttk.Button(addrow, text="Queue all their exposed brokers",
+                  command=self._queue_exposed).pack(side="left")
+
+        qcols = ("person", "broker", "status", "attempts", "error")
+        self.qtree = ttk.Treeview(qf, columns=qcols, show="headings", height=8)
+        for c, w in zip(qcols, (150, 220, 90, 70, 260)):
+            self.qtree.heading(c, text=c.title())
+            self.qtree.column(c, width=w, anchor="w")
+        self.qtree.pack(fill="both", expand=True, pady=6)
+
+        qbar = ttk.Frame(qf)
+        qbar.pack(fill="x")
+        ttk.Button(qbar, text="Process queue now", command=self._process_now,
+                  style="Accent.TButton").pack(side="left")
+        ttk.Button(qbar, text="Requeue selected", command=self._requeue_selected).pack(side="left", padx=4)
+        ttk.Button(qbar, text="Remove selected", command=self._remove_selected,
+                  style="Danger.TButton").pack(side="left")
+        ttk.Button(qbar, text="Clear finished", command=self._clear_finished).pack(side="left", padx=4)
+
+        # --- send log ---------------------------------------------------
+        lf = ttk.LabelFrame(self, text="Send log", padding=PAD)
+        lf.pack(fill="both", expand=True, pady=(10, 0))
+
+        lcols = ("time", "person", "broker", "status", "to")
+        self.ltree = ttk.Treeview(lf, columns=lcols, show="headings", height=6)
+        for c, w in zip(lcols, (140, 150, 200, 70, 220)):
+            self.ltree.heading(c, text=c.title())
+            self.ltree.column(c, width=w, anchor="w")
+        self.ltree.pack(fill="both", expand=True, pady=(0, 6))
+        self.ltree.bind("<<TreeviewSelect>>", self._on_log_select)
+
+        self.log_detail = tk.Text(lf, height=8, wrap="word")
+        self.log_detail.pack(fill="both", expand=True)
+        self.log_detail.config(state="disabled")
+
+        self._load_settings()
+        self.refresh()
+
+    # -- settings ---------------------------------------------------
+    def _load_settings(self):
+        s = Settings()
+        self.enabled.set(bool(s["auto_send_enabled"]))
+        self.mode.set(s["send_schedule_mode"])
+        self.interval.set(int(s["send_interval_minutes"]))
+        self.daily_time.set(s["send_daily_time"])
+        self.batch.set(int(s["send_batch_size"]))
+
+    def _save_settings(self):
+        Settings().update(
+            auto_send_enabled=bool(self.enabled.get()),
+            send_schedule_mode=self.mode.get(),
+            send_interval_minutes=int(self.interval.get()),
+            send_daily_time=self.daily_time.get().strip() or "10:00",
+            send_batch_size=int(self.batch.get()),
+        )
+        self._refresh_status()
+        messagebox.showinfo(__app_name__, "Saved.")
+
+    def _refresh_status(self):
+        s = Settings()
+        due = "yes" if sendbot.is_due(s) else "no"
+        self.status_lbl.config(text=(
+            f"Auto-send: {'ON' if s['auto_send_enabled'] else 'off'}   "
+            f"Last run: {s['send_last_run'] or 'never'}   Due now: {due}   "
+            f"Background scheduler installed: {'yes' if self._scheduler_installed() else 'no'}"))
+
+    @staticmethod
+    def _scheduler_installed() -> bool:
+        from pathlib import Path
+        from .cli import SEND_LAUNCH_LABEL
+        return (Path.home() / "Library" / "LaunchAgents" / f"{SEND_LAUNCH_LABEL}.plist").exists()
+
+    def _install_scheduler(self):
+        from .cli import cmd_install_send_scheduler
+        import argparse
+        try:
+            cmd_install_send_scheduler(argparse.Namespace(poll_seconds=300))
+            messagebox.showinfo(__app_name__,
+                                "Background poller installed (checks every 5 min).\n"
+                                "It only sends anything once 'Enable automatic sending' is on.")
+        except Exception as e:  # noqa
+            messagebox.showerror(__app_name__, f"Install failed: {e}")
+        self._refresh_status()
+
+    def _uninstall_scheduler(self):
+        from .cli import cmd_uninstall_send_scheduler
+        import argparse
+        cmd_uninstall_send_scheduler(argparse.Namespace())
+        messagebox.showinfo(__app_name__, "Background scheduler removed.")
+        self._refresh_status()
+
+    # -- queue ---------------------------------------------------
+    def refresh(self):
+        self._refresh_status()
+        pstore = self.app.pstore
+        self.person_cb["values"] = [p.display() for p in pstore.profiles]
+        if pstore.profiles and self.person_cb.current() < 0:
+            self.person_cb.current(0)
+
+        self.qtree.delete(*self.qtree.get_children())
+        theme.status_tags(self.qtree)
+        for it in sendbot.SendQueue().all():
+            p = pstore.get(it["profile_id"])
+            b = brokers.get(it["broker_id"])
+            tag = {"sent": "removed", "failed": "rejected", "queued": "inflight"}.get(it["status"], "idle")
+            self.qtree.insert("", "end", iid=it["id"], tags=(tag,), values=(
+                p.display() if p else it["profile_id"],
+                b["name"] if b else it["broker_id"],
+                it["status"], it["attempts"], it["last_error"][:80]))
+
+        self.ltree.delete(*self.ltree.get_children())
+        theme.status_tags(self.ltree)
+        for i, e in enumerate(sendbot.read_log(200)):
+            tag = "removed" if e["status"] == "sent" else "rejected"
+            self.ltree.insert("", "end", iid=str(i), tags=(tag,), values=(
+                e["ts"][:16].replace("T", " "), e.get("profile_name", ""),
+                e.get("broker_name", ""), e["status"], e.get("to", "")))
+        self._log_cache = sendbot.read_log(200)
+
+    def _selected_queue_id(self):
+        sel = self.qtree.selection()
+        return sel[0] if sel else None
+
+    def _queue_exposed(self):
+        idx = self.person_cb.current()
+        profs = self.app.pstore.profiles
+        if not (0 <= idx < len(profs)):
+            messagebox.showinfo(__app_name__, "Add a person on the People tab first.")
+            return
+        p = profs[idx]
+        exposed = [b for b in brokers.list_brokers() if b.get("exposed")]
+        for b in exposed:
+            sendbot.add_to_queue(p.id, b["id"])
+        messagebox.showinfo(__app_name__, f"Queued {len(exposed)} exposed broker(s) for {p.display()}.")
+        self.refresh()
+
+    def _process_now(self):
+        pending = sendbot.SendQueue().pending()
+        if not pending:
+            messagebox.showinfo(__app_name__, "Queue is empty.")
+            return
+        batch_size = max(1, int(Settings()["send_batch_size"]))
+        preview = pending[:batch_size]
+        pstore = self.app.pstore
+        lines = []
+        for it in preview:
+            p, b = pstore.get(it["profile_id"]), brokers.get(it["broker_id"])
+            lines.append(f"  - {p.display() if p else '?'} -> {b['name'] if b else '?'}")
+        if not messagebox.askyesno(
+                __app_name__,
+                f"This will actually SEND {len(preview)} email(s) through Mail.app right now:\n\n"
+                + "\n".join(lines) +
+                "\n\nContinue?"):
+            return
+        res = sendbot.process_queue(force=True)
+        self.refresh()
+        messagebox.showinfo(__app_name__, f"[{res['status']}] {res['detail']}")
+
+    def _requeue_selected(self):
+        iid = self._selected_queue_id()
+        if iid:
+            sendbot.SendQueue().requeue(iid)
+            self.refresh()
+
+    def _remove_selected(self):
+        iid = self._selected_queue_id()
+        if iid and messagebox.askyesno(__app_name__, "Remove this item from the queue?"):
+            sendbot.SendQueue().remove(iid)
+            self.refresh()
+
+    def _clear_finished(self):
+        n = sendbot.SendQueue().clear_terminal()
+        messagebox.showinfo(__app_name__, f"Removed {n} finished item(s) from the queue.")
+        self.refresh()
+
+    # -- log ---------------------------------------------------
+    def _on_log_select(self, _=None):
+        sel = self.ltree.selection()
+        if not sel:
+            return
+        e = self._log_cache[int(sel[0])]
+        text = (f"To: {e.get('to','')}\nFrom: {e.get('from_addr','')}\n"
+               f"Subject: {e.get('subject','')}\nStatus: {e['status']}"
+               + (f"\nError: {e['error']}" if e.get("error") else "") +
+               f"\n\n{e.get('body','')}")
+        self.log_detail.config(state="normal")
+        self.log_detail.delete("1.0", "end")
+        self.log_detail.insert("1.0", text)
+        self.log_detail.config(state="disabled")
+
+
 # --------------------------------------------------------------------------- App
 class App(tk.Tk):
     def __init__(self):
@@ -814,10 +1083,12 @@ class App(tk.Tk):
         self.requests_tab = RequestsTab(nb, self)
         self.updates_tab = UpdatesTab(nb, self)
         self.settings_tab = SettingsTab(nb, self)
+        self.sendbot_tab = SendBotTab(nb, self)
         nb.add(self.people_tab, text="People")
         nb.add(self.brokers_tab, text="Brokers")
         nb.add(self.requests_tab, text="Requests")
         nb.add(self.updates_tab, text="Updates")
+        nb.add(self.sendbot_tab, text="Send Bot")
         nb.add(self.settings_tab, text="Settings")
         nb.add(AboutTab(nb, self), text="About")
 
@@ -827,12 +1098,18 @@ class App(tk.Tk):
     def refresh_people_dependents(self):
         if hasattr(self, "requests_tab"):
             self.requests_tab.refresh_people()
+        if hasattr(self, "sendbot_tab"):
+            self.sendbot_tab.refresh()
 
     def refresh_broker_dependents(self):
         if hasattr(self, "requests_tab"):
             self.requests_tab.refresh_rows()
         if hasattr(self, "brokers_tab"):
             pass
+
+    def refresh_sendbot_dependents(self):
+        if hasattr(self, "sendbot_tab"):
+            self.sendbot_tab.refresh()
 
     def _followup_banner(self):
         due = self.rstore.due_followups()

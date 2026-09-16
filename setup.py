@@ -22,7 +22,13 @@ OPTIONS = {
         "CFBundleIdentifier": "com.local.databrokeroptout",
         "CFBundleVersion": dbopt.__version__,
         "CFBundleShortVersionString": dbopt.__version__,
-        "LSMinimumSystemVersion": "10.10",
+        # Honest, not aspirational: this standalone bundle embeds whatever
+        # Python built it (see the framework path py2app printed), and that
+        # Python sets the real floor. A 3.13 framework build's floor is
+        # macOS 10.13 - Apple's own python.org 3.13 installers require it.
+        # For a lower floor (down to ~10.9), use scripts/make-app.sh (the thin
+        # bundle) with an older python.org Python instead of this py2app build.
+        "LSMinimumSystemVersion": "10.13",
         "NSHighResolutionCapable": True,
         # No network entitlement needed; the monthly update uses plain HTTPS.
     },
